@@ -3,4 +3,4 @@ A Django based website for submitting, ranking and revision of speedruns. It aim
 
 
 ## Class Diagram
-<img src="assets/class_diagram.png" />
+<img src="assets/uml_class_diagram.png" />
