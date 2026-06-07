@@ -20,3 +20,11 @@ class Game(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class SpeedrunType(models.Model):
+    name = models.CharField(max_length=255)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='speedrun_types')
+
+    def __str__(self):
+        return f"{self.game.name} - {self.name}"
