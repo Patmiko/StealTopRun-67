@@ -1,6 +1,11 @@
 from django.contrib import admin
-from .models import Game, Category, Speedrun, SpeedrunType
+from .models import Game, Category, Speedrun, SpeedrunType, GameCategoryAllocation
 
+@admin.register(GameCategoryAllocation)
+class GameCategoryAllocationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'game', 'category')
+    search_fields = ('game__name', 'category__name')
+    list_filter = ('game', 'category')
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
