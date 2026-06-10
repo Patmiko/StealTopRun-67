@@ -1,6 +1,44 @@
 # StealTopRun-67
 A Django based website for submitting, ranking and revision of speedruns. It aims to popularize speedrunning through fostering competition. Users are free to submit their own personal runs to compete in their favorite games and subcategories. 
 
+# 🛠️ Instructions:
+
+
+```bash
+
+
+## Clone the repository
+git clone https://github.com/Patmiko/StealTopRun-67
+cd StealTopRun-67
+
+
+## Requirements
+pip install -r requirements.txt
+
+## Run the manage file for the lab and get commands
+python manage.py
+
+## Make and run migrations
+python manage.py makemigrations
+python manage.py migrate
+
+## Create root user 
+python manage.py createsuperuser
+
+## Start development server
+python manage.py runserver
+
+
+```
+
+## 👤 Team members:
+
+
+- Urszula Chmielewska
+- Mateusz Adamowicz
+- Patryk Mikołajewicz
+- Kamil Sas
+
 ## Documentation
 
 ### Class Diagram
