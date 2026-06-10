@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
@@ -5,6 +6,22 @@ class Status(models.TextChoices):
     PENDING = 'PENDING', 'Pending'
     REJECTED = 'REJECTED', 'Rejected'
     ACCEPTED = 'ACCEPTED', 'Accepted'
+
+
+class VerificationStatus(models.TextChoices):
+    VERIFIED = "VERIFIED", "Verified"
+    UNVERIFIED = "UNVERIFIED", "Unverified"
+    BANNED = "BANNED", "Banned"
+
+
+class User(AbstractUser):
+    avatar_url = models.URLField(blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=VerificationStatus.choices,
+        default=VerificationStatus.UNVERIFIED
+    )
 
 
 class Category(models.Model):
@@ -56,4 +73,35 @@ class Speedrun(models.Model):
         default=Status.PENDING
     )
     speedtrun_type = models.ForeignKey(SpeedrunType, on_delete=models.CASCADE, related_name='speedruns')
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='speedruns')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='speedruns')
+    
+class Report(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    date = models.DateField()
+    
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+    
+    reporter = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="reports"
+    )
+    
+class UserReport(Report):
+    target = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="reports_about_me"
+    )
+    
+class SpeedrunReport(Report):
+    target = models.ForeignKey(
+        Speedrun,
+        on_delete=models.CASCADE,
+        related_name="reports_about_speedrun"
+    )
