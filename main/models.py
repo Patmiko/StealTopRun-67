@@ -50,7 +50,7 @@ class GameCategoryAllocation(models.Model):
 class Game(models.Model):
     name = models.CharField(max_length=255, unique=True)
     release_date = models.DateField()
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)
     image = models.ImageField(upload_to='images/game_images/', blank=True, null=True)
     categories = models.ManyToManyField(Category, through=GameCategoryAllocation)
 
@@ -61,6 +61,8 @@ class Game(models.Model):
 class SpeedrunType(models.Model):
     name = models.CharField(max_length=255)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='speedrun_types')
+    description = models.CharField(max_length=255)
+
 
     def __str__(self):
         return f"{self.game.name} - {self.name}"
@@ -132,5 +134,5 @@ class GameRequest(Request):
 
 class SpeedrunTypeRequest(Request):
     name = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='speedrun_type_requests')

@@ -1,7 +1,8 @@
 from django import forms
 from django.forms import formset_factory
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from .models import Category
+from .models import Category, Game
+
 
 class AcceptGameRequestForm(forms.Form):
     request_id = forms.IntegerField(widget=forms.HiddenInput())
@@ -52,3 +53,51 @@ class AcceptGameRequestForm(forms.Form):
         return cleaned_data
 
 AcceptGameRequestFormSet = formset_factory(AcceptGameRequestForm, extra=0)
+
+
+class AcceptSpeedrunTypeRequestForm(forms.Form):
+    request_id = forms.IntegerField(widget=forms.HiddenInput())
+    
+    # Checkbox for rejection
+    reject = forms.BooleanField(
+        required=False, 
+        label="Reject this speedrun type request completely",
+        widget=forms.CheckboxInput(attrs={'class': 'reject-checkbox'})
+    )
+    
+    name = forms.CharField(
+        required=False, 
+        label="Final Speedrun Type Name",
+        widget=forms.TextInput(attrs={'class': 'vTextField', 'style': 'font-weight: bold;'})
+    )
+    
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 4, 
+            'placeholder': 'Enter type description or rules...',
+            'class': 'vLargeTextField'
+        }), 
+        required=False
+    )
+    
+    game = forms.ModelChoiceField(
+        queryset=Game.objects.all(),
+        label="Assigned Game",
+        required=False
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_rejected = cleaned_data.get('reject')
+        
+        if not is_rejected:
+            if not cleaned_data.get('name'):
+                self.add_error('name', 'A final name is required to accept this request.')
+            if not cleaned_data.get('description'):
+                self.add_error('description', 'A description is required to accept this request.')
+            if not cleaned_data.get('game'):
+                self.add_error('game', 'You must assign this speedrun type to a game.')
+                
+        return cleaned_data
+
+AcceptSpeedrunTypeRequestFormSet = formset_factory(AcceptSpeedrunTypeRequestForm, extra=0)
