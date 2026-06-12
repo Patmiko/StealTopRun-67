@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from datetime import date
+
 
 
 class Status(models.TextChoices):
@@ -48,6 +50,7 @@ class GameCategoryAllocation(models.Model):
 class Game(models.Model):
     name = models.CharField(max_length=255, unique=True)
     release_date = models.DateField()
+    description = models.CharField(max_length=255)
     image = models.ImageField(upload_to='images/game_images/', blank=True, null=True)
     categories = models.ManyToManyField(Category, through=GameCategoryAllocation)
 
@@ -118,12 +121,12 @@ class Request(models.Model):
         choices=Status.choices,
         default=Status.PENDING
     )
-    date = models.DateField()
+    date = models.DateField(default=date.today)
 
 
 class GameRequest(Request):
     title = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)
     release_date = models.DateField()
 
 
