@@ -1,5 +1,5 @@
 from django import forms
-from .models import Game, SpeedrunType, Speedrun
+from .models import Speedrun
 
 class SpeedrunForm(forms.ModelForm):
     class Meta:

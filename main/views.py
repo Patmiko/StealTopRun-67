@@ -4,8 +4,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
-from .models import User, Game, SpeedrunType
-from .forms import GameForm, SpeedrunTypeForm ,SpeedrunForm
+from .models import User, Game
+from .forms import SpeedrunForm
 
 class HomeView(View):
     def get(self, request, *args, **kwargs):
