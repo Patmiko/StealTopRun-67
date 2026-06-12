@@ -3,7 +3,9 @@ from django.contrib import messages
 from django.http import HttpRequest
 from django.db.models import QuerySet
 from django.contrib.admin import ModelAdmin
-from .models import User, Status, VerificationStatus, Game, Report, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport
+from .actions import accept_and_configure_game, accept_and_configure_speedrun_type, reject_request
+from .models import User, Status, VerificationStatus, Game, Report, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport, GameRequest, SpeedrunTypeRequest
+
 
 
 @admin.register(GameCategoryAllocation)
@@ -32,7 +34,7 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(SpeedrunType)
 class SpeedrunTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'game')
+    list_display = ('id', 'name', 'game', 'description')
     search_fields = ('name', 'game__name')
     list_filter = ('game',)
 
@@ -119,3 +121,19 @@ class UserReportAdmin(admin.ModelAdmin):
     list_filter = ('status', 'date')
 
     actions = [dismiss_reports, resolve_user_report]
+
+
+@admin.register(GameRequest)
+class GameRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'status', 'date', 'title', 'description')
+    search_fields = ('user__username', 'title')
+    list_filter = ('status', 'date')
+    actions = [accept_and_configure_game, reject_request]
+
+
+@admin.register(SpeedrunTypeRequest)
+class SpeedrunTypeRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'status', 'date', 'name', 'description', 'game')
+    search_fields = ('user__username', 'name')
+    list_filter = ('status', 'date')
+    actions = [reject_request, accept_and_configure_speedrun_type]

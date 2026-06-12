@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from datetime import date
+
 
 
 class Status(models.TextChoices):
@@ -48,7 +50,9 @@ class GameCategoryAllocation(models.Model):
 class Game(models.Model):
     name = models.CharField(max_length=255, unique=True)
     release_date = models.DateField()
-    img_url = models.URLField(max_length=500, blank=True)
+    description = models.CharField(max_length=255, blank=True)
+    image = models.ImageField(upload_to='images/game_images/', blank=True, null=True)
+    categories = models.ManyToManyField(Category, through=GameCategoryAllocation)
 
     def __str__(self):
         return self.name
@@ -57,6 +61,8 @@ class Game(models.Model):
 class SpeedrunType(models.Model):
     name = models.CharField(max_length=255)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='speedrun_types')
+    description = models.CharField(max_length=255)
+
 
     def __str__(self):
         return f"{self.game.name} - {self.name}"
@@ -74,34 +80,59 @@ class Speedrun(models.Model):
     )
     speedrun_type = models.ForeignKey(SpeedrunType, on_delete=models.CASCADE, related_name='speedruns')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='speedruns')
-    
+
+
 class Report(models.Model):
     title = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
     date = models.DateField()
-    
+
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.PENDING
     )
-    
+
     reporter = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="reports"
     )
-    
+
+
 class UserReport(Report):
     target = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="reports_about_me"
     )
-    
+
+
 class SpeedrunReport(Report):
     target = models.ForeignKey(
         Speedrun,
         on_delete=models.CASCADE,
         related_name="reports_about_speedrun"
     )
+
+
+class Request(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requests')
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+    date = models.DateField(default=date.today)
+
+
+class GameRequest(Request):
+    title = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)
+    release_date = models.DateField()
+
+
+class SpeedrunTypeRequest(Request):
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='speedrun_type_requests')
