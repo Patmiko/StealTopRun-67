@@ -4,7 +4,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
-from .models import User 
+from .models import User
+from .forms import SpeedrunForm
 
 class HomeView(View):
     def get(self, request, *args, **kwargs):
@@ -56,3 +57,21 @@ class LogoutView(View):
     def post(self, request, *args, **kwargs):
         logout(request)
         return redirect('user-login')
+
+@method_decorator(login_required(login_url='user-login'), name='dispatch')
+class SpeedrunUploadView(View):
+    def get(self, request, *args, **kwargs):
+        form = SpeedrunForm()
+        return render(request, 'submit_speedrun.html', {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = SpeedrunForm(request.POST)
+        if form.is_valid():
+            speedrun = form.save(commit=False)
+            speedrun.user = request.user
+            speedrun.status = 'PENDING'
+            speedrun.save()
+            messages.success(request, 'Your speedrun has been submitted and is pending review!')
+            return redirect('home')
+        else:
+            return render(request, 'submit_speedrun.html', {'form': form})

@@ -72,7 +72,7 @@ class Speedrun(models.Model):
         choices=Status.choices,
         default=Status.PENDING
     )
-    speedtrun_type = models.ForeignKey(SpeedrunType, on_delete=models.CASCADE, related_name='speedruns')
+    speedrun_type = models.ForeignKey(SpeedrunType, on_delete=models.CASCADE, related_name='speedruns')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='speedruns')
     
 class Report(models.Model):
