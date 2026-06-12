@@ -6,7 +6,10 @@ __pycache__/
 *.DS_Store
 
 ./main/migrations/*
-/main/migrations/*
+main/migrations/*
+
+./staticfiles/admin/*
+staticfiles/*
 
 # C extensions
 *.so
