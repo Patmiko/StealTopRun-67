@@ -39,8 +39,8 @@ class SpeedrunTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Speedrun)
 class SpeedrunAdmin(admin.ModelAdmin):
-    list_display = ('id', 'url', 'time', 'date', 'status', 'speedtrun_type', 'user')
-    search_fields = ('url', 'speedtrun_type__name', 'user__username')
+    list_display = ('id', 'url', 'time', 'date', 'status', 'speedrun_type', 'user')
+    search_fields = ('url', 'speedrun_type__name', 'user__username')
     list_filter = ('status', 'date')
 
 
