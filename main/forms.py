@@ -1,5 +1,20 @@
 from django import forms
-from .models import Speedrun
+from .models import Game, SpeedrunType, Speedrun
+
+
+class GameForm(forms.ModelForm):
+    class Meta:
+        model = Game
+        fields = ['name', 'release_date', 'img_url']
+        # You can add widgets here, e.g., to make release_date a calendar picker
+        widgets = {
+            'release_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+class SpeedrunTypeForm(forms.ModelForm):
+    class Meta:
+        model = SpeedrunType
+        fields = ['name', 'game']
 
 class SpeedrunForm(forms.ModelForm):
     class Meta:
