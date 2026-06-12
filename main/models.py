@@ -85,7 +85,7 @@ class Speedrun(models.Model):
 class Report(models.Model):
     title = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
-    date = models.DateField()
+    date = models.DateField(default=date.today)
 
     status = models.CharField(
         max_length=20,
