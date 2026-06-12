@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ game.name }} - StealTopRun{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-10 mt-6">
+
+    <div class="bg-gray-800 border border-gray-700 rounded-2xl p-8 shadow-lg flex flex-col md:flex-row items-center md:items-start gap-8">
+        
+        <div class="flex-shrink-0">
+            {% if game.image %}
+                <img src="{{ game.image.url }}" alt="{{ game.name }} Cover" class="w-48 h-64 object-cover rounded-xl shadow-md border border-gray-600">
+            {% else %}
+                <div class="w-48 h-64 bg-gray-900 border border-gray-700 rounded-xl shadow-md flex items-center justify-center text-center p-4">
+                    <span class="text-gray-500 font-medium">No Image Available</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="flex-grow text-center md:text-left pt-2">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight">{{ game.name }}</h1>
+            <p class="text-purple-400 font-medium mt-2">
+                Released: {{ game.release_date|date:"F d, Y" }}
+            </p>
+            
+            <div class="mt-6">
+                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">About the Game</h3>
+                <p class="text-gray-300 leading-relaxed max-w-3xl">
+                    {{ game.description|default:"No description provided for this game yet." }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="flex justify-between items-end border-b border-gray-800 pb-4 mb-6">
+            <h2 class="text-3xl font-bold text-white">Categories</h2>
+            <span class="text-gray-400 font-medium">{{ categories.count }} Available</span>
+        </div>
+
+        {% if categories %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for category in categories %}
+                    <a href="{% url 'category-leaderboard' game_id=game.id category_id=category.id %}" class="block group h-full">
+                        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 hover:border-purple-500 hover:bg-gray-750 transition duration-300 shadow-md flex flex-col h-full">
+                            <h3 class="text-xl font-bold text-gray-100 group-hover:text-purple-400 transition mb-2">
+                                {{ category.name }}
+                            </h3>
+                            <p class="text-sm text-gray-400 flex-grow">
+                                {{ category.description|default:"Compete for the fastest time in this category." }}
+                            </p>
+                            
+                            <div class="mt-4 pt-4 border-t border-gray-700 text-right">
+                                <span class="text-purple-500 text-sm font-bold group-hover:text-purple-400 transition">View Leaderboard &rarr;</span>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-gray-800 border border-gray-700 rounded-xl p-10 text-center">
+                <p class="text-xl text-gray-400 font-medium">No speedrun categories exist for this game yet.</p>
+            </div>
+        {% endif %}
+
+        <div class="mt-8 text-center bg-gray-900 border border-gray-800 rounded-xl p-6">
+            <p class="text-gray-400 mb-3">Don't see the category you want to run?</p>
+            <a href="{% url 'request-submit' %}" class="inline-block bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition border border-gray-600">
+                Request a New Category
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

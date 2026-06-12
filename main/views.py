@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
 from .models import User, Game, Speedrun, SpeedrunType
-from .forms import SpeedrunForm
+from .forms import SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm
+
 
 class HomeView(View):
     def get(self, request, *args, **kwargs):
@@ -180,7 +181,44 @@ class SpeedrunUploadView(View):
         
 #REQUESTS PATHS
 #===================================================================================================================
+@method_decorator(login_required(login_url='user-login'), name='dispatch')
+class RequestSubmissionView(View):
+    def get(self, request, *args, **kwargs):
+        # Instantiate both forms empty for the page load
+        context = {
+            'game_form': GameRequestForm(),
+            'type_form': SpeedrunTypeRequestForm(),
+        }
+        return render(request, 'submit_request.html', context)
 
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get('action')
+        
+        game_form = GameRequestForm()
+        type_form = SpeedrunTypeRequestForm()
+
+        if action == 'game_request':
+            game_form = GameRequestForm(request.POST)
+            if game_form.is_valid():
+                game_req = game_form.save(commit=False)
+                game_req.user = request.user
+                game_req.save()
+                messages.success(request, 'Your Game Request has been submitted for review!')
+                return redirect('request-submit')
+
+        elif action == 'type_request':
+            type_form = SpeedrunTypeRequestForm(request.POST)
+            if type_form.is_valid():
+                type_req = type_form.save(commit=False)
+                type_req.user = request.user
+                type_req.save()
+                messages.success(request, 'Your Category Request has been submitted for review!')
+                return redirect('request-submit')
+
+        return render(request, 'submit_request.html', {
+            'game_form': game_form,
+            'type_form': type_form,
+        })
 
 #REPORTS PATHS
 #===================================================================================================================
