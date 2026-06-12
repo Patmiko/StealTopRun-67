@@ -17,7 +17,7 @@ class VerificationStatus(models.TextChoices):
 
 
 class User(AbstractUser):
-    avatar_url = models.URLField(blank=True)
+    profile_picture = models.ImageField(upload_to='images/profiles/', blank=True, null=True)
 
     status = models.CharField(
         max_length=20,

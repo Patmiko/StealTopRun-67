@@ -26,7 +26,7 @@ class LoginView(View):
 
         if user is not None:
             login(request, user)
-            return redirect('game-base')
+            return redirect('home')
         else:
             messages.error(request, 'Invalid username or password.')
             return render(request, 'user/login.html')
@@ -67,7 +67,7 @@ class UserProfileView(View):
     def get(self, request, username, *args, **kwargs):
         profile_user = get_object_or_404(User, username=username)
 
-        user_runs = Speedrun.objects.filter(user=profile_user, status='ACCEPTED').select_related('category', 'category__game')
+        user_runs = Speedrun.objects.filter(user=profile_user, status='ACCEPTED').select_related('speedrun_type', 'speedrun_type__game')
         
         context = {
             'profile_user': profile_user,
