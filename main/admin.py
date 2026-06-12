@@ -3,7 +3,8 @@ from django.contrib import messages
 from django.http import HttpRequest
 from django.db.models import QuerySet
 from django.contrib.admin import ModelAdmin
-from .models import User, Status, VerificationStatus, Game, Report, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport
+from .models import User, Status, VerificationStatus, Game, Report, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport, GameRequest, SpeedrunTypeRequest
+
 
 
 @admin.register(GameCategoryAllocation)
@@ -119,3 +120,17 @@ class UserReportAdmin(admin.ModelAdmin):
     list_filter = ('status', 'date')
 
     actions = [dismiss_reports, resolve_user_report]
+
+
+@admin.register(GameRequest)
+class GameRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'status', 'date', 'title', 'description')
+    search_fields = ('user__username', 'title')
+    list_filter = ('status', 'date')
+
+
+@admin.register(SpeedrunTypeRequest)
+class SpeedrunTypeRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'status', 'date', 'name', 'description', 'game')
+    search_fields = ('user__username', 'name')
+    list_filter = ('status', 'date')

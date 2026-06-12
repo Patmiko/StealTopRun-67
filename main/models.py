@@ -119,3 +119,13 @@ class Request(models.Model):
     )
     date = models.DateField()
 
+
+class GameRequest(Request):
+    title = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+
+
+class SpeedrunTypeRequest(Request):
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='speedrun_type_requests')
