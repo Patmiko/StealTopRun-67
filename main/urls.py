@@ -16,6 +16,7 @@ urlpatterns = [
 
     path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/<int:speedrun_id>/', views.SpeedrunDetailView.as_view(), name='speedrun-view'),
     path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/', views.SpeedrunUploadView.as_view(), name='speedrun-upload'),
-
+    path('user/<str:username>/report/', views.ReportUserView.as_view(), name='report-user'),
+    path('speedruns/<int:speedrun_id>/report/', views.ReportSpeedrunView.as_view(), name='report-speedrun'),
     
 ]

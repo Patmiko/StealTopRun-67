@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
 from .models import User, Game, Speedrun, SpeedrunType
-from .forms import SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm
+from .forms import SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm
 
 
 class HomeView(View):
@@ -220,3 +220,73 @@ class RequestSubmissionView(View):
 
 #REPORTS PATHS
 #===================================================================================================================
+
+@method_decorator(login_required(login_url='user-login'), name='dispatch')
+class ReportUserView(View):
+    def get(self, request, username, *args, **kwargs):
+        target_user = get_object_or_404(User, username=username)
+        
+        # cant report yourself
+        if target_user == request.user:
+            messages.error(request, "You cannot report yourself.")
+            return redirect('user-profile', username=username)
+            
+        form = UserReportForm()
+        return render(request, 'report_form.html', {
+            'form': form, 
+            'target_name': target_user.username,
+            'report_type': 'User'
+        })
+
+    def post(self, request, username, *args, **kwargs):
+        target_user = get_object_or_404(User, username=username)
+        form = UserReportForm(request.POST)
+        
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.reporter = request.user
+            report.target = target_user
+            report.status = 'PENDING'
+            report.save()
+            
+            messages.success(request, f'You have successfully reported {target_user.username}. Our moderators will look into it.')
+            return redirect('user-profile', username=username)
+            
+        return render(request, 'report_form.html', {
+            'form': form, 
+            'target_name': target_user.username,
+            'report_type': 'User'
+        })
+
+
+@method_decorator(login_required(login_url='user-login'), name='dispatch')
+class ReportSpeedrunView(View):
+    def get(self, request, speedrun_id, *args, **kwargs):
+        target_run = get_object_or_404(Speedrun, pk=speedrun_id)
+        
+        form = SpeedrunReportForm()
+        return render(request, 'report_form.html', {
+            'form': form, 
+            'target_name': f"{target_run.speedrun_type.game.name} - {target_run.time}s by {target_run.user.username}",
+            'report_type': 'Speedrun'
+        })
+
+    def post(self, request, speedrun_id, *args, **kwargs):
+        target_run = get_object_or_404(Speedrun, pk=speedrun_id)
+        form = SpeedrunReportForm(request.POST)
+        
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.reporter = request.user
+            report.target = target_run
+            report.status = 'PENDING'
+            report.save()
+            
+            messages.success(request, 'Speedrun reported successfully. Moderators will review it shortly.')
+            return redirect('speedrun-view', game_id=target_run.speedrun_type.game.id, type_id=target_run.speedrun_type.id, speedrun_id=target_run.id)
+            
+        return render(request, 'report_form.html', {
+            'form': form, 
+            'target_name': f"{target_run.speedrun_type.game.name} - {target_run.time}s",
+            'report_type': 'Speedrun'
+        })

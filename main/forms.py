@@ -1,8 +1,7 @@
 from django import forms
 from django.forms import formset_factory
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from .models import Category, Game, GameRequest, SpeedrunTypeRequest
-
+from .models import Category, Game, GameRequest, SpeedrunTypeRequest, UserReport, SpeedrunReport
 
 
 class AcceptGameRequestForm(forms.Form):
@@ -132,4 +131,22 @@ class SpeedrunTypeRequestForm(forms.ModelForm):
         fields = ['game', 'name', 'description']
         labels = {
             'name': 'Category Name',
+        }
+
+
+class UserReportForm(forms.ModelForm):
+    class Meta:
+        model = UserReport
+        fields = ['title', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+
+class SpeedrunReportForm(forms.ModelForm):
+    class Meta:
+        model = SpeedrunReport
+        fields = ['title', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
         }
