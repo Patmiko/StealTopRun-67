@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.utils.decorators import method_decorator
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
@@ -75,24 +74,6 @@ class GameSearchView(View):
         games = Game.objects.filter(name__icontains=name)
         return render(request, 'game_list.html', {'games': games, 'search_term': name})
     
-@method_decorator(staff_member_required, name='dispatch')
-class GameCreateView(View):
-    def post(self, request, *args, **kwargs):
-        form = GameForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('game-list')
-        return render(request, 'game_form.html', {'form': form})
-
-@method_decorator(staff_member_required, name='dispatch')
-class GameEditView(View):
-    def post(self, request, game_id, *args, **kwargs):
-        game = get_object_or_404(Game, pk=game_id)
-        form = GameForm(request.POST, instance=game)
-        if form.is_valid():
-            form.save()
-            return redirect('game-list')
-        return render(request, 'game_form.html', {'form': form, 'game': game})
     
 #SPEEDRUN TYPES PATHS
 #===================================================================================================================
@@ -102,25 +83,6 @@ class SpeedrunTypeListView(View):
         game = get_object_or_404(Game, pk=game_id)
         types = game.speedrun_types.all()
         return render(request, 'speedrun_type_list.html', {'game': game, 'types': types})
-
-@method_decorator(staff_member_required, name='dispatch')
-class SpeedrunTypeCreateView(View):
-    def post(self, request):
-        form = SpeedrunTypeForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('some-success-url')
-        return render(request, 'speedrun_type_form.html', {'form': form})
-
-@method_decorator(staff_member_required, name='dispatch')
-class SpeedrunTypeEditView(View):
-    def post(self, request, speedrunType_id):
-        instance = get_object_or_404(SpeedrunType, pk=speedrunType_id)
-        form = SpeedrunTypeForm(request.POST, instance=instance)
-        if form.is_valid():
-            form.save()
-            return redirect('some-success-url')
-        return render(request, 'speedrun_type_form.html', {'form': form})
 
 #SPEEDRUN PATHS
 #===================================================================================================================
