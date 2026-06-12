@@ -130,7 +130,7 @@ class SpeedrunDetailView(View):
         category = get_object_or_404(SpeedrunType, pk=type_id, game=game)
         
         # grab the specific speedrun
-        speedrun = get_object_or_404(Speedrun, pk=speedrun_id, category=category)
+        speedrun = get_object_or_404(Speedrun, pk=speedrun_id, speedrun_type=type_id)
         
         # Render the page
         return render(request, 'speedrun_detail.html', {
@@ -142,7 +142,6 @@ class SpeedrunDetailView(View):
 @method_decorator(login_required(login_url='user-login'), name='dispatch')
 class SpeedrunUploadView(View):
     def get(self, request, game_id, type_id, *args, **kwargs):
-        # Optional: Grab the game and category just to display their names on the submission page
         game = get_object_or_404(Game, pk=game_id)
         category = get_object_or_404(SpeedrunType, pk=type_id, game=game)
         
@@ -163,13 +162,13 @@ class SpeedrunUploadView(View):
             speedrun = form.save(commit=False)
             
             speedrun.user = request.user
-            speedrun.category = category 
+            speedrun.speedrun_type = category 
             speedrun.status = 'PENDING'
             
             speedrun.save()
             messages.success(request, f'Your {category.name} speedrun for {game.name} has been submitted for review!')
             
-            return redirect('category-leaderboard', game_id=game.id, category_id=category.id)
+            return redirect('category-leaderboard', game_id=game.id, type_id=type_id)
         else:
             return render(request, 'submit_speedrun.html', {
                 'form': form,
