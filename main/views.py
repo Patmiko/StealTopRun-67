@@ -3,6 +3,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Count, Q, Prefetch
 from django.views import View
 from .models import User, Game, Speedrun, SpeedrunType
 from .forms import SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm
@@ -176,7 +179,31 @@ class SpeedrunUploadView(View):
                 'category': category
             })
 
+
+class DiscoverView(View):
+    def get(self, request, *args, **kwargs):
+        one_week_ago = timezone.now().date() - timedelta(days=7)
         
+        # Filter runs from the last 7 days
+        recent_accepted_runs = Q(speedruns__status='ACCEPTED', speedruns__date__gte=one_week_ago)
+        
+        # Get the valid runs
+        valid_runs = Prefetch(
+            'speedruns',
+            queryset=Speedrun.objects.filter(status='ACCEPTED').select_related('user').order_by('time'),
+            to_attr='top_runs'
+        )
+
+        # Get top 5 categories by runs
+        top_categories = SpeedrunType.objects.select_related('game').annotate(
+            recent_run_count=Count('speedruns', filter=recent_accepted_runs)
+        ).filter(
+            recent_run_count__gt=0 
+        ).order_by('-recent_run_count').prefetch_related(valid_runs)[:5]
+
+        return render(request, 'discover.html', {'top_categories': top_categories})
+
+
 #REQUESTS PATHS
 #===================================================================================================================
 @method_decorator(login_required(login_url='user-login'), name='dispatch')

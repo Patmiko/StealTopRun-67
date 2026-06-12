@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     # Core
     path('', views.HomeView.as_view(), name='home'),
+    path('discover/', views.DiscoverView.as_view(), name='discover'),
 
     # User Auth & Profiles
     path('user/login', views.LoginView.as_view(), name='user-login'),
