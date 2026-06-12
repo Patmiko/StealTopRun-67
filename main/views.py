@@ -4,7 +4,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views import View
-from .models import User, Game
+from .models import User, Game, Speedrun, SpeedrunType
 from .forms import SpeedrunForm
 
 class HomeView(View):
@@ -30,6 +30,7 @@ class LoginView(View):
         else:
             messages.error(request, 'Invalid username or password.')
             return render(request, 'user/login.html')
+
 
 class RegisterView(View):
     def get(self, request, *args, **kwargs):
@@ -61,28 +62,100 @@ class LogoutView(View):
         logout(request)
         return redirect('user-login')
     
+
+class UserProfileView(View):
+    def get(self, request, username, *args, **kwargs):
+        profile_user = get_object_or_404(User, username=username)
+
+        user_runs = Speedrun.objects.filter(user=profile_user, status='ACCEPTED').select_related('category', 'category__game')
+        
+        context = {
+            'profile_user': profile_user,
+            'user_runs': user_runs,
+        }
+        return render(request, 'user/profile.html', context)
+
+
 #GAME PATHS
 #===================================================================================================================
 
-class GameListView(View):
-    def get(self, request, *args, **kwargs):
-        games = Game.objects.all()
-        return render(request, 'game_list.html', {'games': games})
 
-class GameSearchView(View):
-    def get(self, request, name, *args, **kwargs):
-        games = Game.objects.filter(name__icontains=name)
-        return render(request, 'game_list.html', {'games': games, 'search_term': name})
+class GamesView(View):
+    def get(self, request, *args, **kwargs):
+        # Captures from the search term from the URL (e.g., /games/?q=mario)
+        search_query = request.GET.get('q', '').strip()
+        
+        if search_query:
+            games = Game.objects.filter(name__icontains=search_query)
+        else:
+            games = Game.objects.all()
+            
+        return render(request, 'games.html', {'games': games, 'search_term': search_query})
+
+
+class GameDetailView(View):
+    def get(self, request, game_id, *args, **kwargs):
+        game = get_object_or_404(Game, pk=game_id)
+        categories = game.speedrun_types.all()
+        return render(request, 'game_detail.html', {'game': game, 'categories': categories})
     
     
 #SPEEDRUN TYPES PATHS
 #===================================================================================================================
 
-class SpeedrunTypeListView(View):
-    def get(self, request, game_id):
+class SpeedrunDetailView(View):
+    def get(self, request, game_id, type_id, speedrun_id, *args, **kwargs):
+        # Verify the exact route context exists
         game = get_object_or_404(Game, pk=game_id)
-        types = game.speedrun_types.all()
-        return render(request, 'speedrun_type_list.html', {'game': game, 'types': types})
+        category = get_object_or_404(SpeedrunType, pk=type_id, game=game)
+        
+        # grab the specific speedrun
+        speedrun = get_object_or_404(Speedrun, pk=speedrun_id, category=category)
+        
+        # Render the page
+        return render(request, 'speedrun_detail.html', {
+            'game': game,
+            'category': category,
+            'speedrun': speedrun
+        })
+
+@method_decorator(login_required(login_url='user-login'), name='dispatch')
+class SpeedrunUploadView(View):
+    def get(self, request, game_id, type_id, *args, **kwargs):
+        # Optional: Grab the game and category just to display their names on the submission page
+        game = get_object_or_404(Game, pk=game_id)
+        category = get_object_or_404(SpeedrunType, pk=type_id, game=game)
+        
+        form = SpeedrunForm()
+        return render(request, 'submit_speedrun.html', {
+            'form': form,
+            'game': game,
+            'category': category
+        })
+
+    def post(self, request, game_id, type_id, *args, **kwargs):
+        game = get_object_or_404(Game, pk=game_id)
+        category = get_object_or_404(SpeedrunType, pk=type_id, game=game)
+        
+        form = SpeedrunForm(request.POST)
+        
+        if form.is_valid():
+            speedrun = form.save(commit=False)
+            
+            speedrun.user = request.user
+            speedrun.category = category 
+            speedrun.status = 'PENDING'
+            
+            speedrun.save()
+            messages.success(request, f'Your {category.name} speedrun for {game.name} has been submitted for review!')
+            
+            return redirect('category-leaderboard', game_id=game.id, category_id=category.id)
+        else:
+            return render(request, 'submit_speedrun.html', {
+                'form': form,
+                'game': game,
+                'category': category
+            })
 
 #SPEEDRUN PATHS
 #===================================================================================================================

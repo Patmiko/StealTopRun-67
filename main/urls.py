@@ -6,11 +6,15 @@ urlpatterns = [
     path('user/login', views.LoginView.as_view(), name='user-login'),
     path('user/register', views.RegisterView.as_view(), name='user-register'),
     path('user/logout', views.LogoutView.as_view(), name='user-logout'),
+    path('user/<str:username>/', views.UserProfileView.as_view(), name='user-profile'),
 
-    path('game/', views.GameListView.as_view(), name='game-list'),
-    path('game/<str:name>/', views.GameSearchView.as_view(), name='game-search'),
+
+    path('games/', views.GamesView.as_view(), name='game-list'),
     
-    path('speedrunType/<int:game_id>/', views.SpeedrunTypeListView.as_view(), name='speedrun-type-list'),
+    path('games/<int:game_id>/', views.GameDetailView.as_view(), name='game-detail'),
 
-    path('speedrun/submit', views.SpeedrunUploadView.as_view(), name='speedrun-submit'),
+    path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/<int:speedrun_id>/', views.SpeedrunDetailView.as_view(), name='speedrun-view'),
+    path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/', views.SpeedrunUploadView.as_view(), name='speedrun-upload'),
+
+    
 ]
