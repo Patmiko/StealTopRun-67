@@ -104,6 +104,25 @@ class GameDetailView(View):
 #SPEEDRUN TYPES PATHS
 #===================================================================================================================
 
+class CategoryLeaderboardView(View):
+    def get(self, request, game_id, type_id, *args, **kwargs):
+        game = get_object_or_404(Game, pk=game_id)
+        category = get_object_or_404(SpeedrunType, pk=type_id, game=game)
+        
+        speedruns = Speedrun.objects.filter(
+            speedrun_type=category, 
+            status='ACCEPTED'
+        ).order_by('time')
+        
+        return render(request, 'category_leaderboard.html', {
+            'game': game,
+            'category': category,
+            'speedruns': speedruns
+        })
+
+#SPEEDRUN PATHS
+#===================================================================================================================
+
 class SpeedrunDetailView(View):
     def get(self, request, game_id, type_id, speedrun_id, *args, **kwargs):
         # Verify the exact route context exists
@@ -158,26 +177,6 @@ class SpeedrunUploadView(View):
                 'category': category
             })
 
-#SPEEDRUN PATHS
-#===================================================================================================================
-
-@method_decorator(login_required(login_url='user-login'), name='dispatch')
-class SpeedrunUploadView(View):
-    def get(self, request, *args, **kwargs):
-        form = SpeedrunForm()
-        return render(request, 'submit_speedrun.html', {'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = SpeedrunForm(request.POST)
-        if form.is_valid():
-            speedrun = form.save(commit=False)
-            speedrun.user = request.user
-            speedrun.status = 'PENDING'
-            speedrun.save()
-            messages.success(request, 'Your speedrun has been submitted and is pending review!')
-            return redirect('home')
-        else:
-            return render(request, 'submit_speedrun.html', {'form': form})
         
 #REQUESTS PATHS
 #===================================================================================================================

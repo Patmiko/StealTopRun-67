@@ -41,7 +41,7 @@
         {% if categories %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for category in categories %}
-                    <a href="{% url 'category-leaderboard' game_id=game.id category_id=category.id %}" class="block group h-full">
+                    <a href="{% url 'category-leaderboard' game_id=game.id type_id=category.id %}" class="block group h-full"></a>
                         <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 hover:border-purple-500 hover:bg-gray-750 transition duration-300 shadow-md flex flex-col h-full">
                             <h3 class="text-xl font-bold text-gray-100 group-hover:text-purple-400 transition mb-2">
                                 {{ category.name }}
@@ -51,7 +51,7 @@
                             </p>
                             
                             <div class="mt-4 pt-4 border-t border-gray-700 text-right">
-                                <span class="text-purple-500 text-sm font-bold group-hover:text-purple-400 transition">View Leaderboard &rarr;</span>
+                                <span class="text-purple-500 text-sm font-bold group-hover:text-purple-400 transition"><a href="{% url 'category-leaderboard' game_id=game.id type_id=category.id %}">View Leaderboard &rarr;</a></span>
                             </div>
                         </div>
                     </a>

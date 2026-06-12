@@ -12,6 +12,7 @@ urlpatterns = [
     path('games/', views.GamesView.as_view(), name='game-list'),
     
     path('games/<int:game_id>/', views.GameDetailView.as_view(), name='game-detail'),
+    path('games/<int:game_id>/speedrun-types/<int:type_id>/', views.CategoryLeaderboardView.as_view(), name='category-leaderboard'),
 
     path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/<int:speedrun_id>/', views.SpeedrunDetailView.as_view(), name='speedrun-view'),
     path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/', views.SpeedrunUploadView.as_view(), name='speedrun-upload'),
