@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.http import HttpRequest
 from django.db.models import QuerySet
 from django.contrib.admin import ModelAdmin
+from .actions import accept_and_configure_game
 from .models import User, Status, VerificationStatus, Game, Report, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport, GameRequest, SpeedrunTypeRequest
 
 
@@ -127,6 +128,7 @@ class GameRequestAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'status', 'date', 'title', 'description')
     search_fields = ('user__username', 'title')
     list_filter = ('status', 'date')
+    actions = [accept_and_configure_game]
 
 
 @admin.register(SpeedrunTypeRequest)

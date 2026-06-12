@@ -48,7 +48,8 @@ class GameCategoryAllocation(models.Model):
 class Game(models.Model):
     name = models.CharField(max_length=255, unique=True)
     release_date = models.DateField()
-    img_url = models.URLField(max_length=500, blank=True)
+    image = models.ImageField(upload_to='images/game_images/', blank=True, null=True)
+    categories = models.ManyToManyField(Category, through=GameCategoryAllocation)
 
     def __str__(self):
         return self.name
@@ -123,6 +124,7 @@ class Request(models.Model):
 class GameRequest(Request):
     title = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
+    release_date = models.DateField()
 
 
 class SpeedrunTypeRequest(Request):
