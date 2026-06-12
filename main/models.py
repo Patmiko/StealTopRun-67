@@ -74,34 +74,48 @@ class Speedrun(models.Model):
     )
     speedtrun_type = models.ForeignKey(SpeedrunType, on_delete=models.CASCADE, related_name='speedruns')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='speedruns')
-    
+
+
 class Report(models.Model):
     title = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
     date = models.DateField()
-    
+
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.PENDING
     )
-    
+
     reporter = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="reports"
     )
-    
+
+
 class UserReport(Report):
     target = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="reports_about_me"
     )
-    
+
+
 class SpeedrunReport(Report):
     target = models.ForeignKey(
         Speedrun,
         on_delete=models.CASCADE,
         related_name="reports_about_speedrun"
     )
+
+
+class Request(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requests')
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+    date = models.DateField()
+
