@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from datetime import date
+from urllib.parse import urlparse, parse_qs
 
 
 
@@ -80,6 +81,32 @@ class Speedrun(models.Model):
     )
     speedrun_type = models.ForeignKey(SpeedrunType, on_delete=models.CASCADE, related_name='speedruns')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='speedruns')
+
+    @property
+    def embed_url(self):
+        # Parses the URL to get the video ID
+        parsed_url = urlparse(self.url)
+        if 'youtube.com' in parsed_url.netloc:
+            query = parse_qs(parsed_url.query)
+            video_id = query.get('v', [None])[0]
+            if video_id:
+                return f"https://www.youtube.com/embed/{video_id}"
+        elif 'youtu.be' in parsed_url.netloc:
+            # Handle shortened links
+            video_id = parsed_url.path.lstrip('/')
+            return f"https://www.youtube.com/embed/{video_id}"
+        return self.url # Return original if not recognized
+    
+    @property
+    def formatted_time(self):
+        """Converts total seconds into HH:MM:SS format."""
+        total_seconds = int(self.time)
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        
+        if hours > 0:
+            return f"{hours:02}:{minutes:02}:{seconds:02}"
+        return f"{minutes:02}:{seconds:02}"
 
 
 class Report(models.Model):

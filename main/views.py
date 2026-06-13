@@ -181,13 +181,20 @@ class CategoryLeaderboardView(View):
         chart_data = []
         best_time = float('inf')
         
+        def format_seconds(total_seconds):
+            total_seconds = int(total_seconds)
+            minutes, seconds = divmod(total_seconds, 60)
+            return f"{minutes:02}:{seconds:02}"
+        
         for run in history_runs:
             if float(run.time) < best_time:
                 best_time = float(run.time)
                 chart_data.append({
                     'date': run.date.strftime('%Y-%m-%d'),
-                    'time': best_time
+                    'time': best_time,
+                    'formatted': format_seconds(best_time) # Add this
                 })
+
         if chart_data:
             today_str = timezone.now().strftime('%Y-%m-%d')
             chart_data.append({
@@ -207,18 +214,21 @@ class CategoryLeaderboardView(View):
 
 class SpeedrunDetailView(View):
     def get(self, request, game_id, type_id, speedrun_id, *args, **kwargs):
-        # Verify the exact route context exists
         game = get_object_or_404(Game, pk=game_id)
         category = get_object_or_404(SpeedrunType, pk=type_id, game=game)
+        speedrun = get_object_or_404(Speedrun, pk=speedrun_id, speedrun_type=category)
         
-        # grab the specific speedrun
-        speedrun = get_object_or_404(Speedrun, pk=speedrun_id, speedrun_type=type_id)
+        rank = Speedrun.objects.filter(
+            speedrun_type=category, 
+            status='ACCEPTED', 
+            time__lt=speedrun.time
+        ).count() + 1
         
-        # Render the page
         return render(request, 'speedrun_detail.html', {
             'game': game,
             'category': category,
-            'speedrun': speedrun
+            'speedrun': speedrun,
+            'rank': rank
         })
 
 @method_decorator(login_required(login_url='user-login'), name='dispatch')
