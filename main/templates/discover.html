@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Discover Trending Runs - StealTopRun{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-8 space-y-10">
+
+    <div class="text-center border-b border-gray-700 pb-8">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500 tracking-tight">
+            Trending This Week
+        </h1>
+        <p class="text-gray-400 font-medium mt-4 text-lg">
+            The most active speedrun categories across all games over the last 7 days.
+        </p>
+    </div>
+
+    <div class="space-y-8">
+        {% for category in top_categories %}
+            <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-lg">
+                
+                <div class="bg-gray-900 border-b border-gray-700 p-5 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        {% if category.game.image %}
+                            <img src="{{ category.game.image.url }}" alt="{{ category.game.name }}" class="w-12 h-12 object-cover rounded shadow">
+                        {% else %}
+                            <div class="w-12 h-12 bg-gray-800 border border-gray-600 rounded flex items-center justify-center text-xs text-gray-500">N/A</div>
+                        {% endif %}
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">
+                                <a href="{% url 'category-leaderboard' game_id=category.game.id type_id=category.id %}" class="hover:text-purple-400 transition">
+                                    {{ category.game.name }} - {{ category.name }}
+                                </a>
+                            </h2>
+                            <p class="text-sm text-gray-400">🔥 {{ category.recent_run_count }} new run{% if category.recent_run_count != 1 %}s{% endif %} this week</p>
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'speedrun-upload' game_id=category.game.id type_id=category.id %}" class="bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition">
+                        Submit a Run
+                    </a>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <tbody class="divide-y divide-gray-700">
+                            {% for run in category.top_runs|slice:":3" %}
+                                <tr class="hover:bg-gray-750 transition duration-150">
+                                    <td class="p-4 text-center font-bold text-gray-300 w-16">
+                                        {% if forloop.counter == 1 %}<span class="text-yellow-400" title="World Record">🏆</span>
+                                        {% elif forloop.counter == 2 %}<span class="text-gray-300">🥈</span>
+                                        {% elif forloop.counter == 3 %}<span class="text-amber-600">🥉</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="p-4">
+                                        <a href="{% url 'user-profile' username=run.user.username %}" class="font-bold text-blue-400 hover:text-blue-300 transition">
+                                            {{ run.user.username }}
+                                        </a>
+                                    </td>
+                                    <td class="p-4 text-right">
+                                        <a href="{% url 'speedrun-view' game_id=category.game.id type_id=category.id speedrun_id=run.id %}" class="font-mono font-black text-green-400 hover:text-green-300 transition">
+                                            {{ run.time }}s
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="3" class="p-4 text-center text-gray-500 text-sm">No valid runs found.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="bg-gray-850 p-3 text-center border-t border-gray-700">
+                    <a href="{% url 'category-leaderboard' game_id=category.game.id type_id=category.id %}" class="text-sm text-purple-400 hover:text-purple-300 font-medium transition">
+                        View Full Leaderboard &rarr;
+                    </a>
+                </div>
+
+            </div>
+        {% empty %}
+            <div class="bg-gray-800 border border-gray-700 border-dashed rounded-2xl p-12 text-center shadow-lg">
+                <span class="text-4xl mb-4 block">🏜️</span>
+                <p class="text-gray-300 text-xl font-bold mb-2">It's quiet... too quiet.</p>
+                <p class="text-gray-400 mb-6">No runs have been approved in the last 7 days.</p>
+                <a href="{% url 'game-list' %}" class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-lg transition">
+                    Find a game to run
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

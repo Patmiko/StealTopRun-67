@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit a Request - StealTopRun{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-8">
+    <h1 class="text-3xl font-extrabold text-white mb-8 text-center border-b border-gray-700 pb-4">Submit a Request</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-lg">
+            <h2 class="text-2xl font-bold text-purple-400 mb-2">Request a New Game</h2>
+            <p class="text-sm text-gray-400 mb-6">Can't find a game on the site? Request it here!</p>
+
+            <form action="{% url 'request-submit' %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="game_request">
+                
+                {{ game_form.as_p }}
+
+                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition mt-4">
+                    Submit Game Request
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-lg">
+            <h2 class="text-2xl font-bold text-blue-400 mb-2">Request a Speedrun Type</h2>
+            <p class="text-sm text-gray-400 mb-6">Want to run a category that doesn't exist for an approved game?</p>
+
+            <form action="{% url 'request-submit' %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="type_request">
+                
+                {{ type_form.as_p }}
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition mt-4">
+                    Submit Category Request
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    form p { margin-bottom: 1rem; display: flex; flex-direction: column; }
+    form label { font-size: 0.875rem; color: #d1d5db; margin-bottom: 0.25rem; font-weight: 500; }
+    form input, form select, form textarea { 
+        background-color: #111827; border: 1px solid #374151; border-radius: 0.5rem; 
+        padding: 0.5rem 1rem; color: white; width: 100%;
+    }
+    form input:focus, form select:focus, form textarea:focus {
+        outline: none; border-color: #a855f7;
+    }
+</style>
+{% endblock %}

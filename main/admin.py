@@ -16,7 +16,7 @@ class GameCategoryAllocationAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'avatar_url', 'status', 'username', 'email', 'password')
+    list_display = ('id', 'profile_picture', 'status', 'username', 'email', 'password')
     search_fields = ('id', 'username', 'email')
     list_filter = ('status',)
 

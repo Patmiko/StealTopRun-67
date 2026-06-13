@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Games - StealTopRun{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-8 mt-4">
+
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-700 pb-6">
+        <div>
+            <h1 class="text-4xl font-extrabold text-white">Browse Games</h1>
+            <p class="text-gray-400 mt-1">Find your favorite game and start running.</p>
+        </div>
+
+        <form method="GET" action="" class="w-full md:w-auto flex items-center">
+            <div class="relative w-full md:w-80">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ search_term }}" 
+                    placeholder="Search games..." 
+                    class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-4 pr-10 py-2.5 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition shadow-inner"
+                >
+                {% if search_term %}
+                    <a href="{% url 'game-list' %}" class="absolute right-3 top-3 text-gray-400 hover:text-white" title="Clear Search">
+                        &times;
+                    </a>
+                {% else %}
+                    <span class="absolute right-3 top-3 text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                {% endif %}
+            </div>
+            <button type="submit" class="ml-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg font-bold transition shadow-md">
+                Search
+            </button>
+        </form>
+    </div>
+
+    {% if search_term %}
+        <p class="text-gray-400 font-medium">Showing results for: <span class="text-purple-400">"{{ search_term }}"</span></p>
+    {% endif %}
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {% for game in games %}
+            <a href="{% url 'game-detail' game_id=game.id %}" class="block group">
+                <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition duration-300 h-full flex flex-col">
+                    
+                    <div class="aspect-[3/4] w-full bg-gray-900 border-b border-gray-700 relative">
+                        {% if game.image %}
+                            <img src="{{ game.image.url }}" alt="{{ game.name }}" class="w-full h-full object-cover group-hover:opacity-90 transition">
+                        {% else %}
+                            <div class="absolute inset-0 flex items-center justify-center text-gray-600 font-medium">
+                                No Image
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h3 class="text-lg font-bold text-gray-100 group-hover:text-purple-400 transition line-clamp-2">
+                            {{ game.name }}
+                        </h3>
+                        <div class="mt-auto pt-2 flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500 bg-gray-900 px-2 py-1 rounded">
+                                {{ game.release_date|date:"Y" }}
+                            </span>
+                            <span class="text-xs text-purple-400 font-medium group-hover:underline">
+                                View &rarr;
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+            </a>
+        {% empty %}
+            <div class="col-span-full bg-gray-800 border border-gray-700 border-dashed rounded-2xl p-12 text-center">
+                <p class="text-gray-400 text-lg mb-4">No games found matching your search.</p>
+                <a href="{% url 'request-submit' %}" class="inline-block bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition border border-gray-600">
+                    Request a New Game
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

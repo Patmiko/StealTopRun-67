@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import formset_factory
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from .models import Category, Game
+from .models import Category, Game, GameRequest, SpeedrunTypeRequest, UserReport, SpeedrunReport
 
 
 class AcceptGameRequestForm(forms.Form):
@@ -116,3 +116,37 @@ class SpeedrunForm(forms.ModelForm):
         if time is not None and time < 0:
             raise forms.ValidationError("Time cannot be negative!")
         return time
+
+class GameRequestForm(forms.ModelForm):
+    class Meta:
+        model = GameRequest
+        fields = ['title', 'description', 'release_date']
+        widgets = {
+            'release_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+class SpeedrunTypeRequestForm(forms.ModelForm):
+    class Meta:
+        model = SpeedrunTypeRequest
+        fields = ['game', 'name', 'description']
+        labels = {
+            'name': 'Category Name',
+        }
+
+
+class UserReportForm(forms.ModelForm):
+    class Meta:
+        model = UserReport
+        fields = ['title', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+
+class SpeedrunReportForm(forms.ModelForm):
+    class Meta:
+        model = SpeedrunReport
+        fields = ['title', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
