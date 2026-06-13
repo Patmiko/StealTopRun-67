@@ -12,6 +12,7 @@ urlpatterns = [
     path('user/logout', views.LogoutView.as_view(), name='user-logout'),
     path('user/<str:username>/', views.UserProfileView.as_view(), name='user-profile'),
     path('user/<str:username>/edit/', views.EditUserProfileView.as_view(), name='edit-profile'),
+    path('users/search/', views.SearchUserView.as_view(), name='user-search'),
 
 
     # Games & Leaderboards

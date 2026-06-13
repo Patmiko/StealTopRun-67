@@ -42,11 +42,18 @@
                                 Discover
                             </a>
 
+                            <a href="{% url 'user-search' %}" 
+                                class="px-3 py-2 rounded-md text-sm font-medium transition
+                                {% if request.resolver_match.url_name == 'user-search' %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
+                                Search User
+                            </a>
+
                             <a href="{% url 'user-profile' username=user.username %}" 
                                 class="px-3 py-2 rounded-md text-sm font-medium transition
                                 {% if request.resolver_match.kwargs.username == user.username and request.resolver_match.url_name in 'user-profile edit-profile' %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
                                 My Profile
                             </a>
+
                         </div>
                     {% endif %}
                 </div>

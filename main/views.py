@@ -139,6 +139,17 @@ class EditUserProfileView(View):
         }
         return render(request, 'user/edit-profile.html', context)
 
+class SearchUserView(View):
+    def get(self, request, *args, **kwargs):
+        search_query = request.GET.get('q', '').strip()
+        
+        if search_query:
+            users = User.objects.filter(username__icontains=search_query)
+            users = users.filter(status='VERIFIED')
+        else:
+            users = User.objects.none()
+            
+        return render(request, 'user/search_users.html', {'users': users, 'search_term': search_query})
 
 #GAME PATHS
 #===================================================================================================================
@@ -407,9 +418,12 @@ class ReportSpeedrunView(View):
             'report_type': 'Speedrun'
         })
     
-
+# ERROR HANDLING PATHS
+#===================================================================================================================
 class PageNotFoundView(View):
     def get(self, request, *args, **kwargs):
         return render(request, '404.html', status=404)
+    
+
     
     
