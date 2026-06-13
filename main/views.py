@@ -9,7 +9,7 @@ from datetime import timedelta
 from django.db.models import Count, Q, Prefetch
 from django.views import View
 from .models import User, Game, Speedrun, SpeedrunType
-from .forms import SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm
+from .forms import Category, SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm
 import json
 
 
@@ -157,16 +157,27 @@ class SearchUserView(View):
 
 class GamesView(View):
     def get(self, request, *args, **kwargs):
-        # Captures from the search term from the URL (e.g., /games/?q=mario)
         search_query = request.GET.get('q', '').strip()
         
         if search_query:
             games = Game.objects.filter(name__icontains=search_query)
+            grouped_games = None
         else:
-            games = Game.objects.all()
+            games = None
+            categories = Category.objects.prefetch_related('game_set').all()
             
-        return render(request, 'games.html', {'games': games, 'search_term': search_query})
-
+            grouped_games = {}
+            for category in categories:
+                category_games = category.game_set.all()
+                
+                if category_games.exists():
+                    grouped_games[category.name] = category_games
+            
+        return render(request, 'games.html', {
+            'games': games, 
+            'grouped_games': grouped_games, 
+            'search_term': search_query
+        })
 
 class GameDetailView(View):
     def get(self, request, game_id, *args, **kwargs):

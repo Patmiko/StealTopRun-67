@@ -40,46 +40,91 @@
 
     {% if search_term %}
         <p class="text-gray-400 font-medium">Showing results for: <span class="text-purple-400">"{{ search_term }}"</span></p>
-    {% endif %}
 
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {% for game in games %}
-            <a href="{% url 'game-detail' game_id=game.id %}" class="block group">
-                <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition duration-300 h-full flex flex-col">
-                    {% load static %}
-                    <div class="aspect-[3/4] w-full bg-gray-900 border-b border-gray-700 relative">
-                        {% if game.image %}
-                            <img src="{{ game.image.url }}" alt="{{ game.name }}" class="w-full h-full object-cover group-hover:opacity-90 transition">
-                        {% else %}
-                            <img src="{% static 'images/game_images/default-game.png' %}" alt="{{ game.name }}" class="w-full h-full object-cover group-hover:opacity-90 transition">
-                        {% endif %}
-                    </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {% for game in games %}
+                <a href="{% url 'game-detail' game_id=game.id %}" class="block group">
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition duration-300 h-full flex flex-col">
+                        {% load static %}
+                        <div class="aspect-[3/4] w-full bg-gray-900 border-b border-gray-700 relative">
+                            {% if game.image %}
+                                <img src="{{ game.image.url }}" alt="{{ game.name }}" class="w-full h-full object-cover group-hover:opacity-90 transition">
+                            {% else %}
+                                <img src="{% static 'images/game_images/default-game.png' %}" alt="{{ game.name }}" class="w-full h-full object-cover group-hover:opacity-90 transition">
+                            {% endif %}
+                        </div>
 
-                    <div class="p-4 flex flex-col flex-grow">
-                        <h3 class="text-lg font-bold text-gray-100 group-hover:text-purple-400 transition line-clamp-2">
-                            {{ game.name }}
-                        </h3>
-                        <div class="mt-auto pt-2 flex justify-between items-center">
-                            <span class="text-xs font-bold text-gray-500 bg-gray-900 px-2 py-1 rounded">
-                                {{ game.release_date|date:"Y" }}
-                            </span>
-                            <span class="text-xs text-purple-400 font-medium group-hover:underline">
-                                View &rarr;
-                            </span>
+                        <div class="p-4 flex flex-col flex-grow">
+                            <h3 class="text-lg font-bold text-gray-100 group-hover:text-purple-400 transition line-clamp-2">
+                                {{ game.name }}
+                            </h3>
+                            <div class="mt-auto pt-2 flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-500 bg-gray-900 px-2 py-1 rounded">
+                                    {{ game.release_date|date:"Y" }}
+                                </span>
+                                <span class="text-xs text-purple-400 font-medium group-hover:underline">
+                                    View &rarr;
+                                </span>
+                            </div>
                         </div>
                     </div>
-
-                </div>
-            </a>
-        {% empty %}
-            <div class="col-span-full bg-gray-800 border border-gray-700 border-dashed rounded-2xl p-12 text-center">
-                <p class="text-gray-400 text-lg mb-4">No games found matching your search.</p>
-                <a href="{% url 'request-submit' %}" class="inline-block bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition border border-gray-600">
-                    Request a New Game
                 </a>
-            </div>
-        {% endfor %}
-    </div>
+            {% empty %}
+                <div class="col-span-full bg-gray-800 border border-gray-700 border-dashed rounded-2xl p-12 text-center">
+                    <p class="text-gray-400 text-lg mb-4">No games found matching your search.</p>
+                    <a href="{% url 'request-submit' %}" class="inline-block bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition border border-gray-600">
+                        Request a New Game
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <div class="space-y-12">
+            {% for category_name, games_list in grouped_games.items %}
+                <div class="space-y-4">
+                    <h2 class="text-2xl font-bold text-gray-400 border-b border-gray-800 pb-2">
+                        {{ category_name }}
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        {% for game in games_list %}
+                            <a href="{% url 'game-detail' game_id=game.id %}" class="block group">
+                                <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition duration-300 h-full flex flex-col">
+                                    {% load static %}
+                                    <div class="aspect-[3/4] w-full bg-gray-900 border-b border-gray-700 relative">
+                                        {% if game.image %}
+                                            <img src="{{ game.image.url }}" alt="{{ game.name }}" class="w-full h-full object-cover group-hover:opacity-90 transition">
+                                        {% else %}
+                                            <img src="{% static 'images/game_images/default-game.png' %}" alt="{{ game.name }}" class="w-full h-full object-cover group-hover:opacity-90 transition">
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="p-4 flex flex-col flex-grow">
+                                        <h3 class="text-lg font-bold text-gray-100 group-hover:text-purple-400 transition line-clamp-2">
+                                            {{ game.name }}
+                                        </h3>
+                                        <div class="mt-auto pt-2 flex justify-between items-center">
+                                            <span class="text-xs font-bold text-gray-500 bg-gray-900 px-2 py-1 rounded">
+                                                {{ game.release_date|date:"Y" }}
+                                            </span>
+                                            <span class="text-xs text-purple-400 font-medium group-hover:underline">
+                                                View &rarr;
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% empty %}
+                <div class="bg-gray-800 border border-gray-700 border-dashed rounded-2xl p-12 text-center">
+                    <p class="text-gray-400 text-lg mb-4">No categories or games found.</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
 </div>
 {% endblock %}

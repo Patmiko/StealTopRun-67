@@ -57,7 +57,6 @@
                     ticks: { 
                         color: '#9ca3af',
                         callback: function(value) {
-                            // Replicating the logic from models.py
                             const totalMs = Math.floor(value * 1000);
                             const ms = totalMs % 1000;
                             const totalSecs = Math.floor(totalMs / 1000);
@@ -79,10 +78,19 @@
                 x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' }}
             },
             plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#9ca3af',
+                        font: {
+                            size: 12
+                        },
+                        padding: 20
+                    }
+                },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            // Applying the same logic for the hover tooltip
                             const totalSecsRaw = context.raw;
                             const totalMs = Math.floor(totalSecsRaw * 1000);
                             const ms = totalMs % 1000;
@@ -106,7 +114,7 @@
     });
 </script>
 
-    <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-lg">
+    <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-lg mt-8">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-900 border-b border-gray-700">
