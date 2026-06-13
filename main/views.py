@@ -383,7 +383,7 @@ class ReportSpeedrunView(View):
         form = SpeedrunReportForm()
         return render(request, 'report_form.html', {
             'form': form, 
-            'target_name': f"{target_run.speedrun_type.game.name} - {target_run.time}s by {target_run.user.username}",
+            'target_name': f"{target_run.speedrun_type.game.name} - {target_run.formatted_time}s by {target_run.user.username}",
             'report_type': 'Speedrun'
         })
 
