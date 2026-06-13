@@ -396,3 +396,10 @@ class ReportSpeedrunView(View):
             'target_name': f"{target_run.speedrun_type.game.name} - {target_run.time}s",
             'report_type': 'Speedrun'
         })
+    
+
+class PageNotFoundView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, '404.html', status=404)
+    
+    
