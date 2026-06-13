@@ -161,7 +161,13 @@ class UserReportForm(forms.ModelForm):
         model = UserReport
         fields = ['title', 'description']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
+            'title': forms.TextInput(attrs={
+                'class': 'w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 transition shadow-inner'
+            }),
+            'description': forms.Textarea(attrs={
+                'rows': 4,
+                'class': 'w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 transition shadow-inner'
+            }),
         }
 
 
@@ -170,7 +176,13 @@ class SpeedrunReportForm(forms.ModelForm):
         model = SpeedrunReport
         fields = ['title', 'description']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
+            'title': forms.TextInput(attrs={
+                'class': 'w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 transition shadow-inner'
+            }),
+            'description': forms.Textarea(attrs={
+                'rows': 4,
+                'class': 'w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 transition shadow-inner'
+            }),
         }
 
 class UserProfileEditForm(forms.ModelForm):
