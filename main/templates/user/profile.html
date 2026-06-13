@@ -83,12 +83,14 @@
         {% endif %}
     </div>
 
+    {% if user != profile_user %}
     <div class="mt-8 pt-6 border-t border-gray-700">
         <a href="{% url 'report-user' username=profile_user.username %}" 
            class="bg-gray-800 hover:bg-gray-900 text-red-500 border-2 border-red-600 px-5 py-2 rounded-lg font-bold transition shadow-lg">
             Report User
         </a>
     </div>
+    {% endif %}
 
 </div>
 {% endblock %}
