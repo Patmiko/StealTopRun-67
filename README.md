@@ -22,12 +22,24 @@ python manage.py
 python manage.py makemigrations
 python manage.py migrate
 
+## Flush existing data (Optional: clear database for a fresh start)
+# This will ask for confirmation; use --noinput to skip the prompt
+python manage.py flush --noinput
+
+## Populate database from JSON
+# Ensure the file is saved as UTF-8
+python manage.py loaddata initial_data.json
+
 ## Create root user 
 python manage.py createsuperuser
 
 ## Start development server
 python manage.py runserver
 
+## Save the changes in database to json
+python manage.py dumpdata > initial_data.json
+# If you are running it in the powershell use this instead to enforce UTF-8 encoding:
+python manage.py dumpdata --format=json | Out-File -FilePath initial_data.json -Encoding utf8
 
 ```
 
