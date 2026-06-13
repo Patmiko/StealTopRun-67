@@ -99,14 +99,28 @@ class Speedrun(models.Model):
     
     @property
     def formatted_time(self):
-        """Converts total seconds into HH:MM:SS format."""
-        total_seconds = int(self.time)
-        hours, remainder = divmod(total_seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
+        """Converts total seconds into format like 1h 20min 30s 500ms (skipping zeroes)."""
+        total_milliseconds = int(self.time * 1000)
         
+        # Calculate individual units
+        milliseconds = total_milliseconds % 1000
+        total_seconds = total_milliseconds // 1000
+        seconds = total_seconds % 60
+        minutes = (total_seconds // 60) % 60
+        hours = total_seconds // 3600
+        
+        parts = []
         if hours > 0:
-            return f"{hours:02}:{minutes:02}:{seconds:02}"
-        return f"{minutes:02}:{seconds:02}"
+            parts.append(f"{hours}h")
+        if minutes > 0:
+            parts.append(f"{minutes}min")
+        if seconds > 0:
+            parts.append(f"{seconds}s")
+        if milliseconds > 0:
+            parts.append(f"{milliseconds}ms")
+            
+        # Fallback if time is effectively zero
+        return " ".join(parts) if parts else "0s"
 
 
 class Report(models.Model):
