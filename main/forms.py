@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import formset_factory
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from .models import Category, Game, GameRequest, SpeedrunTypeRequest, UserReport, SpeedrunReport, Speedrun, User
+from .models import Category, Game, GameRequest, SpeedrunTypeRequest, UserReport, SpeedrunReport, Speedrun, User, SpeedrunType
 import re
 
 
@@ -206,3 +206,34 @@ class UserProfileEditForm(forms.ModelForm):
         if User.objects.filter(username=username).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("This username is already taken.")
         return username
+
+class AcceptSpeedrunRequestForm(forms.Form):
+    request_id = forms.IntegerField(widget=forms.HiddenInput())
+    url = forms.CharField(max_length=255, required=False)
+    time = forms.FloatField(required=False)
+    
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=False)
+    
+    speedrun_type = forms.ModelChoiceField(
+        queryset=SpeedrunType.objects.all(), 
+        required=False,
+        widget=forms.Select()
+    )
+    reject = forms.BooleanField(required=False, initial=False)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        reject = cleaned_data.get('reject')
+        
+        if not reject:
+            if not cleaned_data.get('url'):
+                self.add_error('url', 'This field is required when accepting.')
+            if not cleaned_data.get('time'):
+                self.add_error('time', 'This field is required when accepting.')
+            if not cleaned_data.get('date'):
+                self.add_error('date', 'This field is required when accepting.')
+            if not cleaned_data.get('speedrun_type'):
+                self.add_error('speedrun_type', 'This field is required when accepting.')
+        return cleaned_data
+
+AcceptSpeedrunRequestFormSet = forms.formset_factory(AcceptSpeedrunRequestForm, extra=0)

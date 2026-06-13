@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.http import HttpRequest
 from django.db.models import QuerySet
 from django.contrib.admin import ModelAdmin
-from .actions import accept_and_configure_game, accept_and_configure_speedrun_type, reject_request
+from .actions import accept_and_configure_game, accept_and_configure_speedrun_type, reject_request, accept_and_configure_speedrun
 from .models import User, Status, VerificationStatus, Game, Report, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport, GameRequest, SpeedrunTypeRequest
 
 
@@ -44,6 +44,8 @@ class SpeedrunAdmin(admin.ModelAdmin):
     list_display = ('id', 'url', 'time', 'date', 'status', 'speedrun_type', 'user')
     search_fields = ('url', 'speedrun_type__name', 'user__username')
     list_filter = ('status', 'date')
+    
+    actions = [accept_and_configure_speedrun]
 
 
 @admin.action(description="Dismiss reports")
