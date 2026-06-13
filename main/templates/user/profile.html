@@ -84,9 +84,12 @@
     </div>
 
     {% if user != profile_user %}
-    <div class="mt-8 pt-6 border-t border-gray-700">
-        <a href="{% url 'report-user' username=profile_user.username %}" 
-           class="bg-gray-800 hover:bg-gray-900 text-red-500 border-2 border-red-600 px-5 py-2 rounded-lg font-bold transition shadow-lg">
+    <div>
+        <a href="{% url 'report-user' username=profile_user.username %}"
+            class="inline-flex items-center gap-2 bg-transparent hover:bg-red-950/20 text-red-400 border border-red-500/20 hover:border-red-500 px-5 py-3 rounded-xl text-sm font-bold transition shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
             Report User
         </a>
     </div>
