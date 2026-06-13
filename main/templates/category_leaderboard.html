@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ category.name }} Leaderboard - {{ game.name }}{% endblock %}
+{% block title %} {{ category.name }} Leaderboard - {{ game.name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-5xl mx-auto mt-8">
@@ -45,14 +45,13 @@
                 data: chartData.map(item => item.time),
                 borderColor: '#a855f7',
                 backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                stepped: true, // Creates the step-line effect
+                stepped: true, 
                 fill: true,
                 tension: 0
             }]
         },
         options: {
             responsive: true,
-
             scales: {
                 y: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
                 x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' }}
@@ -87,7 +86,7 @@
                         </td>
                         
                         <td class="p-4">
-                            <a href="#" class="font-bold text-purple-400 hover:text-purple-300 transition">
+                            <a href="{% url 'user-profile' username=run.user.username %}" class="font-bold text-purple-400 hover:text-purple-300 transition">
                                 {{ run.user.username }}
                             </a>
                         </td>
