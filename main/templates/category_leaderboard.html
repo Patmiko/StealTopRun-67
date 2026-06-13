@@ -41,21 +41,44 @@
         data: {
             labels: labels,
             datasets: [{
-                label: 'Record Time (seconds)',
+                label: 'Record Time',
                 data: chartData.map(item => item.time),
                 borderColor: '#a855f7',
                 backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                stepped: true, // Creates the step-line effect
+                stepped: true,
                 fill: true,
                 tension: 0
             }]
         },
         options: {
             responsive: true,
-
             scales: {
-                y: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
+                y: { 
+                    ticks: { 
+                        color: '#9ca3af',
+                        // This transforms the Y-axis labels
+                        callback: function(value) {
+                            const minutes = Math.floor(value / 60);
+                            const seconds = Math.floor(value % 60);
+                            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        }
+                    }, 
+                    grid: { color: '#374151' } 
+                },
                 x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' }}
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        // This transforms the hover tooltip
+                        label: function(context) {
+                            const totalSeconds = context.raw;
+                            const minutes = Math.floor(totalSeconds / 60);
+                            const seconds = Math.floor(totalSeconds % 60);
+                            return `Record Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        }
+                    }
+                }
             }
         }
     });
@@ -87,14 +110,15 @@
                         </td>
                         
                         <td class="p-4">
-                            <a href="#" class="font-bold text-purple-400 hover:text-purple-300 transition">
+                            <a href="{% url 'user-profile' username=run.user.username %}" 
+                            class="font-bold text-purple-400 hover:text-purple-300 transition">
                                 {{ run.user.username }}
                             </a>
                         </td>
                         
                         <td class="p-4 text-right">
                             <a href="{% url 'speedrun-view' game_id=game.id type_id=category.id speedrun_id=run.id %}" class="font-mono font-black text-green-400 hover:text-green-300 text-lg transition">
-                                {{ run.time }}s
+                                {{ run.formatted_time }}s
                             </a>
                         </td>
                         
