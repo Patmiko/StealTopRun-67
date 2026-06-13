@@ -5,7 +5,6 @@
 {{ block.super }}
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
-    // Konfiguracja Tailwinda pod ciemny motyw Django (klasa 'theme-dark' lub atrybut data-theme)
     tailwind.config = {
         darkMode: ['selector', '[data-theme="dark"]']
     }
@@ -13,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-5xl my-6 mx-0 font-sans text-[var(--body-fg)]">
+<div class="max-w-5xl my-6 mx-0 font-sans text-slate-800 dark:text-slate-200">
     <form action="" method="post">{% csrf_token %}
         {{ formset.management_form }}
         
@@ -21,78 +20,86 @@
             <input type="hidden" name="_selected_action" value="{{ item.pk }}" />
         {% endfor %}
         
-        <h1 class="text-2xl font-bold tracking-tight mb-2">{{ title }}</h1>
-        <p class="text-sm text-[var(--body-quiet-color)] mb-6">Review and configure the speedrun requests below:</p>
+        <div class="mb-8 bg-indigo-600 dark:bg-indigo-800 rounded-xl p-6 shadow-md border border-indigo-700">
+            <h1 class="text-3xl font-extrabold tracking-tight !text-white mb-2 mt-0">{{ title }}</h1>
+            <p class="text-base font-medium !text-indigo-100 m-0">Review and configure the speedrun requests below carefully before processing.</p>
+        </div>
 
         {% for form in formset %}
-        <div class="bg-[var(--body-bg,#fff)] border border-[var(--border-color,#ccc)] rounded-lg mb-6 shadow-sm overflow-hidden dark:border-gray-7xl">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl mb-8 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
             
-            <div class="bg-[var(--darker-gray,#f8f8f8)] px-5 py-3 border-b border-[var(--border-color,#eee)] flex justify-between items-center dark:bg-gray-800 dark:border-gray-700">
+            <div class="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
                 <div class="text-sm">
-                    <strong class="font-semibold text-[var(--body-fg)]">User:</strong> 
-                    <span class="font-medium text-[var(--primary,#79aec8)] ml-1">{{ form.initial.username }}</span>
+                    <strong class="font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider text-xs">Submitted by</strong> 
+                    <span class="font-bold text-indigo-600 dark:text-indigo-400 ml-2 text-base">{{ form.initial.username }}</span>
                 </div>
-                <div class="text-xs text-[var(--body-quiet-color)] flex items-center gap-2">
+                <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-600">
                     {{ form.request_id }}
-                    <span>Request ID: <span class="font-mono">#{{ form.initial.request_id }}</span></span>
+                    <span class="font-medium">Request ID: <span class="font-mono text-slate-700 dark:text-slate-300">#{{ form.initial.request_id }}</span></span>
                 </div>
             </div>
 
             <div class="p-6 space-y-6">
                 
-                <div class="bg-blue-50/50 p-3 rounded-md border border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/30">
-                    <span class="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block mb-1">Submitted Link</span>
-                    <a href="{{ form.initial.url }}" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-700 hover:underline break-all font-medium inline-flex items-center gap-1 dark:text-blue-400">
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-100 dark:border-indigo-800/30">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block mb-1.5">Submitted Video Evidence</span>
+                    <a href="{{ form.initial.url }}" target="_blank" rel="noopener noreferrer" class="text-sm text-indigo-700 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-200 hover:underline break-all font-medium inline-flex items-center gap-1.5 transition-colors">
                         {{ form.initial.url }}
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                     </a>
                 </div>
 
-                <div class="space-y-4">
+                <div class="space-y-5 bg-slate-50/50 dark:bg-slate-800/20 p-5 rounded-lg border border-slate-100 dark:border-slate-700/50">
                     {% if form.errors %}
-                        <div class="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-md border border-red-200 font-medium dark:bg-red-950/30 dark:border-red-900/40 dark:text-red-400">
-                            Please correct the errors inside this request.
+                        <div class="bg-rose-50 text-rose-600 text-sm px-4 py-3 rounded-lg border border-rose-200 font-medium dark:bg-rose-900/30 dark:border-rose-800/40 dark:text-rose-400 shadow-sm">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Please correct the errors below.
+                            </span>
                         </div>
                     {% endif %}
 
-                    <div class="flex flex-col md:grid md:grid-cols-[120px_1fr] md:items-center gap-2">
-                        <label for="{{ form.url.id_for_label }}" class="text-sm font-semibold text-[var(--body-quiet-color)]">URL:</label>
-                        <div class="w-full [&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:border-[var(--border-color)] [&_input]:px-3 [&_input]:py-1.5 [&_input]:text-sm [&_input]:bg-[var(--body-bg)] [&_input]:text-[var(--body-fg)]">
-                            {{ form.url.errors }}
-                            {{ form.url }}
+                    <div class="space-y-4 [&_label]:text-sm [&_label]:font-semibold [&_label]:text-slate-700 [&_label]:dark:text-slate-300 [&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:border-slate-300 [&_input]:dark:border-slate-600 [&_input]:px-3 [&_input]:py-2 [&_input]:text-sm [&_input]:bg-white [&_input]:dark:bg-slate-800 [&_input]:text-slate-900 [&_input]:dark:text-slate-100 [&_input]:focus:ring-2 [&_input]:focus:ring-indigo-500 [&_input]:focus:border-indigo-500 [&_input]:transition-all [&_select]:w-full [&_select]:rounded-md [&_select]:border [&_select]:border-slate-300 [&_select]:dark:border-slate-600 [&_select]:px-3 [&_select]:py-2 [&_select]:text-sm [&_select]:bg-white [&_select]:dark:bg-slate-800 [&_select]:text-slate-900 [&_select]:dark:text-slate-100 [&_select]:focus:ring-2 [&_select]:focus:ring-indigo-500 [&_select]:focus:border-indigo-500 [&_select]:transition-all">
+                        
+                        <div class="flex flex-col md:grid md:grid-cols-[140px_1fr] md:items-center gap-2">
+                            <label for="{{ form.url.id_for_label }}">URL:</label>
+                            <div>
+                                {{ form.url.errors }}
+                                {{ form.url }}
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="flex flex-col md:grid md:grid-cols-[120px_1fr] md:items-center gap-2">
-                        <label for="{{ form.time.id_for_label }}" class="text-sm font-semibold text-[var(--body-quiet-color)]">Time (s):</label>
-                        <div class="w-full [&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:border-[var(--border-color)] [&_input]:px-3 [&_input]:py-1.5 [&_input]:text-sm [&_input]:bg-[var(--body-bg)] [&_input]:text-[var(--body-fg)]">
-                            {{ form.time.errors }}
-                            {{ form.time }}
+                        <div class="flex flex-col md:grid md:grid-cols-[140px_1fr] md:items-center gap-2">
+                            <label for="{{ form.time.id_for_label }}">Time (s):</label>
+                            <div>
+                                {{ form.time.errors }}
+                                {{ form.time }}
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="flex flex-col md:grid md:grid-cols-[120px_1fr] md:items-center gap-2">
-                        <label for="{{ form.date.id_for_label }}" class="text-sm font-semibold text-[var(--body-quiet-color)]">Date:</label>
-                        <div class="w-full [&_select]:rounded-md [&_select]:border [&_select]:border-[var(--border-color)] [&_select]:px-2 [&_select]:py-1.5 [&_select]:text-sm [&_select]:bg-[var(--body-bg)] [&_select]:text-[var(--body-fg)] [&_select]:mr-1">
-                            {{ form.date.errors }}
-                            {{ form.date }}
+                        <div class="flex flex-col md:grid md:grid-cols-[140px_1fr] md:items-center gap-2">
+                            <label for="{{ form.date.id_for_label }}">Date:</label>
+                            <div class="[&_select]:mr-1">
+                                {{ form.date.errors }}
+                                {{ form.date }}
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="flex flex-col md:grid md:grid-cols-[120px_1fr] md:items-center gap-2">
-                        <label for="{{ form.speedrun_type.id_for_label }}" class="text-sm font-semibold text-[var(--body-quiet-color)]">Type:</label>
-                        <div class="w-full [&_select]:w-full [&_select]:rounded-md [&_select]:border [&_select]:border-[var(--border-color)] [&_select]:px-3 [&_select]:py-1.5 [&_select]:text-sm [&_select]:bg-[var(--body-bg)] [&_select]:text-[var(--body-fg)]">
-                            {{ form.speedrun_type.errors }}
-                            {{ form.speedrun_type }}
+                        <div class="flex flex-col md:grid md:grid-cols-[140px_1fr] md:items-center gap-2">
+                            <label for="{{ form.speedrun_type.id_for_label }}">Type:</label>
+                            <div>
+                                {{ form.speedrun_type.errors }}
+                                {{ form.speedrun_type }}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-red-50 border border-dashed border-red-200 rounded-md p-3 flex items-center gap-3 dark:bg-red-950/20 dark:border-red-900/30">
-                    <div class="flex items-center h-5 [&_input]:w-4 [&_input]:h-4 [&_input]:text-red-600 [&_input]:border-gray-300 [&_input]:rounded">
+                <div class="bg-rose-50 border border-dashed border-rose-300 rounded-lg p-4 flex items-center gap-3 dark:bg-rose-950/20 dark:border-rose-900/50 hover:bg-rose-100/50 dark:hover:bg-rose-900/30 transition-colors">
+                    <div class="flex items-center h-5 [&_input]:w-5 [&_input]:h-5 [&_input]:text-rose-600 [&_input]:border-rose-300 [&_input]:rounded [&_input]:focus:ring-rose-500 [&_input]:cursor-pointer">
                         {{ form.reject }}
                     </div>
-                    <label for="{{ form.reject.id_for_label }}" class="text-sm font-bold text-red-600 dark:text-red-400 cursor-pointer select-none">
+                    <label for="{{ form.reject.id_for_label }}" class="text-sm font-bold text-rose-700 dark:text-rose-400 cursor-pointer select-none w-full">
                         Reject this speedrun request
                     </label>
                 </div>
@@ -104,8 +111,8 @@
         <input type="hidden" name="action" value="accept_and_configure_speedrun" />
         <input type="hidden" name="apply" value="Apply" />
         
-        <div class="submit-row mt-6">
-            <input type="submit" value="Process Requests" class="default bg-[var(--primary)] text-white font-medium px-4 py-2 rounded shadow-sm hover:opacity-90 cursor-pointer" />
+        <div class="mt-8 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 rounded-xl flex justify-end shadow-sm">
+            <input type="submit" value="Process Requests" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border border-indigo-700 focus:ring-4 focus:ring-indigo-500/30" />
         </div>
     </form>
 </div>

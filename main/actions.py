@@ -137,7 +137,7 @@ def accept_and_configure_speedrun_type(modeladmin, request, queryset):
                         req_obj.status = Status.ACCEPTED
                         req_obj.save()
                         accepted_count += 1
-                    
+            
             msg = f"Processing complete. Accepted {accepted_count} speedrun type(s)"
             if rejected_count:
                 msg += f" and rejected {rejected_count} request(s)"
@@ -147,19 +147,20 @@ def accept_and_configure_speedrun_type(modeladmin, request, queryset):
             return HttpResponseRedirect(request.get_full_path())
         else:
             modeladmin.message_user(request, "Please correct the errors below.", messages.ERROR)
+
     else:
         initial_data = [
             {
                 'request_id': req.id,
-                'url': req.url,
-                'time': req.time,
+                'name': req.name,
+                'description': req.description,
+                'game': req.game,
                 'date': req.date,
-                'speedrun_type': req.speedrun_type if req.speedrun_type else None,
                 'username': req.user.username if req.user else "Unknown",
             }
             for req in queryset
         ]
-        formset = AcceptSpeedrunRequestFormSet(initial=initial_data)
+        formset = AcceptSpeedrunTypeRequestFormSet(initial=initial_data)
 
     opts = modeladmin.model._meta
 
