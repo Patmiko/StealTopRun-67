@@ -21,6 +21,46 @@
         </div>
     </div>
 
+<div class="bg-gray-800 p-6 rounded-xl mt-8 border border-gray-700" style="max-width: 600px; margin: 0 auto;">
+    <h2 class="text-white font-bold mb-4">Record Time Progression</h2>
+    <canvas id="recordChart" style="height: 200px;"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('recordChart').getContext('2d');
+    const chartData = JSON.parse('{{ chart_data|safe }}');
+
+    const labels = chartData.map(item => item.date);
+    if (labels.length > 0) {
+        labels[labels.length - 1] = 'Now';
+    }
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Record Time (seconds)',
+                data: chartData.map(item => item.time),
+                borderColor: '#a855f7',
+                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                stepped: true, // Creates the step-line effect
+                fill: true,
+                tension: 0
+            }]
+        },
+        options: {
+            responsive: true,
+
+            scales: {
+                y: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
+                x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' }}
+            }
+        }
+    });
+</script>
+
     <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-lg">
         <table class="w-full text-left border-collapse">
             <thead>

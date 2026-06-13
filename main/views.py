@@ -9,6 +9,7 @@ from django.db.models import Count, Q, Prefetch
 from django.views import View
 from .models import User, Game, Speedrun, SpeedrunType
 from .forms import SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm
+import json
 
 
 class HomeView(View):
@@ -117,10 +118,29 @@ class CategoryLeaderboardView(View):
             status='ACCEPTED'
         ).order_by('time')
         
+        history_runs = speedruns.order_by('date')
+        chart_data = []
+        best_time = float('inf')
+        
+        for run in history_runs:
+            if float(run.time) < best_time:
+                best_time = float(run.time)
+                chart_data.append({
+                    'date': run.date.strftime('%Y-%m-%d'),
+                    'time': best_time
+                })
+        if chart_data:
+            today_str = timezone.now().strftime('%Y-%m-%d')
+            chart_data.append({
+                'date': today_str,
+                'time': chart_data[-1]['time']
+            })
+        
         return render(request, 'category_leaderboard.html', {
             'game': game,
             'category': category,
-            'speedruns': speedruns
+            'speedruns': speedruns,
+            'chart_data': json.dumps(chart_data) # Pass as JSON string
         })
 
 #SPEEDRUN PATHS
