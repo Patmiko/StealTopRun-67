@@ -100,8 +100,8 @@ class GamesView(View):
 class GameDetailView(View):
     def get(self, request, game_id, *args, **kwargs):
         game = get_object_or_404(Game, pk=game_id)
-        categories = game.speedrun_types.all()
-        return render(request, 'game_detail.html', {'game': game, 'categories': categories})
+        speedrun_types = game.speedrun_types.all()
+        return render(request, 'game_detail.html', {'game': game, 'speedrun_types': speedrun_types})
     
     
 #SPEEDRUN TYPES PATHS
@@ -146,18 +146,18 @@ class SpeedrunDetailView(View):
 class SpeedrunUploadView(View):
     def get(self, request, game_id, type_id, *args, **kwargs):
         game = get_object_or_404(Game, pk=game_id)
-        category = get_object_or_404(SpeedrunType, pk=type_id, game=game)
+        speedrun_type = get_object_or_404(SpeedrunType, pk=type_id, game=game)
         
-        form = SpeedrunForm()
+        form = SpeedrunForm(initial={'speedrun_type':speedrun_type})
         return render(request, 'submit_speedrun.html', {
             'form': form,
             'game': game,
-            'category': category
+            'speedrun_type': speedrun_type
         })
 
     def post(self, request, game_id, type_id, *args, **kwargs):
         game = get_object_or_404(Game, pk=game_id)
-        category = get_object_or_404(SpeedrunType, pk=type_id, game=game)
+        speedrun_type = get_object_or_404(SpeedrunType, pk=type_id, game=game)
         
         form = SpeedrunForm(request.POST)
         
@@ -165,18 +165,18 @@ class SpeedrunUploadView(View):
             speedrun = form.save(commit=False)
             
             speedrun.user = request.user
-            speedrun.speedrun_type = category 
+            speedrun.speedrun_type = speedrun_type 
             speedrun.status = 'PENDING'
             
             speedrun.save()
-            messages.success(request, f'Your {category.name} speedrun for {game.name} has been submitted for review!')
+            messages.success(request, f'Your {speedrun_type.name} speedrun for {game.name} has been submitted for review!')
             
             return redirect('category-leaderboard', game_id=game.id, type_id=type_id)
         else:
             return render(request, 'submit_speedrun.html', {
                 'form': form,
                 'game': game,
-                'category': category
+                'speedrun_type': speedrun_type
             })
 
 

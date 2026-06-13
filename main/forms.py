@@ -1,7 +1,8 @@
 from django import forms
 from django.forms import formset_factory
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from .models import Category, Game, GameRequest, SpeedrunTypeRequest, UserReport, SpeedrunReport
+from .models import Category, Game, GameRequest, SpeedrunTypeRequest, UserReport, SpeedrunReport, Speedrun
+import re
 
 
 class AcceptGameRequestForm(forms.Form):
@@ -101,22 +102,43 @@ class AcceptSpeedrunTypeRequestForm(forms.Form):
         return cleaned_data
 
 AcceptSpeedrunTypeRequestFormSet = formset_factory(AcceptSpeedrunTypeRequestForm, extra=0)
-from .models import Speedrun
 
 class SpeedrunForm(forms.ModelForm):
+    time = forms.CharField(
+        label="Time (HH:MM:SS:MS)",
+        widget=forms.TextInput(attrs={'placeholder': 'HH:MM:SS:MS (e.g., 00:27:39:72).'})
+    )
+
     class Meta:
         model = Speedrun
         fields = ['url', 'time', 'date', 'speedrun_type']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
+            'speedrun_type': forms.HiddenInput(),
         }
 
     def clean_time(self):
-        time = self.cleaned_data.get('time')
-        if time is not None and time < 0:
-            raise forms.ValidationError("Time cannot be negative!")
-        return time
-
+        time_str = self.cleaned_data.get('time', '').strip()
+        
+        match = re.match(r'^(\d+):(\d+):(\d+):(\d+)$', time_str)
+        if not match:
+            raise forms.ValidationError("Enter time in a valid format HH:MM:SS:MS (e.g., 00:27:39:72).")
+            
+        hours = int(match.group(1))
+        minutes = int(match.group(2))
+        seconds = int(match.group(3))
+        
+        milliseconds = float(f"0.{match.group(4)}")
+        
+        if minutes >= 60 or seconds >= 60:
+            raise forms.ValidationError("Minutes and seconds must be less than 60.")
+        
+        total_seconds = (hours * 3600) + (minutes * 60) + seconds + milliseconds
+        
+        if total_seconds <= 0:
+            raise forms.ValidationError("Time must be greater than zero!")
+            
+        return total_seconds
 class GameRequestForm(forms.ModelForm):
     class Meta:
         model = GameRequest
@@ -130,7 +152,7 @@ class SpeedrunTypeRequestForm(forms.ModelForm):
         model = SpeedrunTypeRequest
         fields = ['game', 'name', 'description']
         labels = {
-            'name': 'Category Name',
+            'name': 'Speedrun Type Name',
         }
 
 
