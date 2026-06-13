@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit {{ profile_user.username }}'s Profile - StealTopRun{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8">
+    <a href="{% url 'user-profile' username=profile_user.username %}" class="inline-flex items-center text-sm text-gray-400 hover:text-purple-400 transition-colors font-medium group">
+        <span class="transform group-hover:-translate-x-1 transition-transform mr-1.5">&larr;</span> Back to profile
+    </a>
+    <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white">Profile Settings</h1>
+            <p class="text-gray-400 text-sm mt-1">Manage your account credentials and public profile</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="space-y-4">
+            {% for message in messages %}
+                <div class="p-4 rounded-xl border text-sm font-medium shadow-md transition
+                    {% if message.tags == 'success' %}
+                        bg-green-900/40 border-green-500/50 text-green-300
+                    {% elif message.tags == 'error' %}
+                        bg-red-900/40 border-red-500/50 text-red-300
+                    {% else %}
+                        bg-blue-900/40 border-blue-500/50 text-blue-300
+                    {% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+        
+        <div class="md:col-span-2 bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-lg flex flex-col h-full justify-between">
+            <div>
+                <h2 class="text-xl font-bold text-purple-400 mb-6">Public Profile Details</h2>
+                
+                <form method="POST" enctype="multipart/form-data" class="space-y-5">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_profile">
+
+                    <div class="flex flex-col sm:flex-row items-center gap-6 bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+                        <div class="flex-shrink-0" id="avatar-container">
+                            {% if profile_user.profile_picture %}
+                                <img id="profile-avatar" src="{{ profile_user.profile_picture.url }}" alt="Preview" class="w-20 h-20 rounded-full object-cover border-2 border-purple-500 shadow-md">
+                            {% else %}
+                                <div id="profile-avatar" class="w-20 h-20 rounded-full bg-purple-900 border-2 border-purple-500 flex items-center justify-center text-3xl font-extrabold text-purple-300 uppercase">
+                                    {{ profile_user.username|make_list|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow w-full">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Profile Picture</label>
+                            <div id="avatar-input-wrapper">
+                                {{ profile_form.profile_picture }}
+                            </div>
+                            {% if profile_form.profile_picture.errors %}
+                                <p class="text-red-400 text-xs mt-1">{{ profile_form.profile_picture.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ profile_form.username.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1.5">Username</label>
+                        {{ profile_form.username }}
+                        {% if profile_form.username.errors %}
+                            <p class="text-red-400 text-xs mt-1">{{ profile_form.username.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ profile_form.email.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1.5">Email Address</label>
+                        {{ profile_form.email }}
+                        {% if profile_form.email.errors %}
+                            <p class="text-red-400 text-xs mt-1">{{ profile_form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm px-6 py-2.5 rounded-lg shadow transition cursor-pointer">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-lg flex flex-col h-full">
+            <form method="POST" class="flex flex-col h-full justify-between">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+
+                <div>
+                    <h2 class="text-xl font-bold text-red-400 mb-6">Security</h2>
+                    <div class="space-y-4">
+                        {% for field in password_form %}
+                            <div>
+                                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1.5">{{ field.label }}</label>
+                                <input 
+                                    type="{{ field.field.widget.input_type }}" 
+                                    name="{{ field.html_name }}" 
+                                    id="{{ field.id_for_label }}"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-purple-500 transition shadow-inner"
+                                    required
+                                >
+                                {% if field.errors %}
+                                    <p class="text-red-400 text-xs mt-1">{{ field.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow transition cursor-pointer">
+                        Update Password
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const fileInput = document.querySelector('#avatar-input-wrapper input[type="file"]');
+        const container = document.getElementById('avatar-container');
+
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        container.innerHTML = `<img id="profile-avatar" src="${event.target.result}" alt="Preview" class="w-20 h-20 rounded-full object-cover border-2 border-purple-500 shadow-md">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -25,21 +25,27 @@
                     {% if user.is_authenticated %}
                         <div class="hidden md:flex items-center space-x-4">
                             <a href="{% url 'game-list' %}" 
-                               class="px-3 py-2 rounded-md text-sm font-medium transition
-                               {% if '/games' in request.path %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
+                                class="px-3 py-2 rounded-md text-sm font-medium transition
+                                {% if '/games' in request.path %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
                                 Games
                             </a>
                             
                             <a href="{% url 'request-submit' %}" 
-                               class="px-3 py-2 rounded-md text-sm font-medium transition
-                               {% if request.resolver_match.url_name == 'request-submit' %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
+                                class="px-3 py-2 rounded-md text-sm font-medium transition
+                                {% if request.resolver_match.url_name == 'request-submit' %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
                                 Request
                             </a>
                             
                             <a href="{% url 'discover' %}" 
-                               class="px-3 py-2 rounded-md text-sm font-medium transition
-                               {% if request.resolver_match.url_name == 'discover' %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
+                                class="px-3 py-2 rounded-md text-sm font-medium transition
+                                {% if request.resolver_match.url_name == 'discover' %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
                                 Discover
+                            </a>
+
+                            <a href="{% url 'user-profile' username=user.username %}" 
+                                class="px-3 py-2 rounded-md text-sm font-medium transition
+                                {% if request.resolver_match.kwargs.username == user.username and request.resolver_match.url_name in 'user-profile edit-profile' %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
+                                My Profile
                             </a>
                         </div>
                     {% endif %}

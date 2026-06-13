@@ -11,6 +11,8 @@ urlpatterns = [
     path('user/register', views.RegisterView.as_view(), name='user-register'),
     path('user/logout', views.LogoutView.as_view(), name='user-logout'),
     path('user/<str:username>/', views.UserProfileView.as_view(), name='user-profile'),
+    path('user/<str:username>/edit/', views.EditUserProfileView.as_view(), name='edit-profile'),
+
 
     # Games & Leaderboards
     path('games/', views.GamesView.as_view(), name='game-list'),
