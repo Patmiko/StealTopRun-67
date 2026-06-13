@@ -37,9 +37,7 @@ python manage.py createsuperuser
 python manage.py runserver
 
 ## Save the changes in database to json
-python manage.py dumpdata main > initial_data.json
-# If you are running it in the powershell use this instead to enforce UTF-8 encoding:
-python manage.py dumpdata main --format=json | Out-File -FilePath initial_data.json -Encoding utf8
+python manage.py dumpdata main --format=json -o initial_data.json
 
 ```
 

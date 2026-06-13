@@ -11,14 +11,12 @@
     </div>
 
     <div class="bg-gray-800 border border-gray-700 rounded-2xl p-8 shadow-lg flex flex-col md:flex-row items-center md:items-start gap-8">
-        
+        {% load static %}
         <div class="flex-shrink-0">
             {% if game.image %}
                 <img src="{{ game.image.url }}" alt="{{ game.name }} Cover" class="w-48 h-64 object-cover rounded-xl shadow-md border border-gray-600">
             {% else %}
-                <div class="w-48 h-64 bg-gray-900 border border-gray-700 rounded-xl shadow-md flex items-center justify-center text-center p-4">
-                    <span class="text-gray-500 font-medium">No Image Available</span>
-                </div>
+                <img src="{% static 'images/game_images/default-game.png' %}" Cover" class="w-48 h-64 object-cover rounded-xl shadow-md border border-gray-600">
             {% endif %}
         </div>
 
