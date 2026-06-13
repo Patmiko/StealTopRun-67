@@ -29,4 +29,7 @@ urlpatterns = [
     # Reports
     path('user/<str:username>/report/', views.ReportUserView.as_view(), name='report-user'),
     path('speedruns/<int:speedrun_id>/report/', views.ReportSpeedrunView.as_view(), name='report-speedrun'),
+
+    # Error Handling
+    path('404/', views.PageNotFoundView.as_view(), name='page-not-found'),
 ]
