@@ -1,15 +1,129 @@
 {% extends 'base.html' %}
 
-{% block title %}Submit Speedrun{% endblock %}
+{% block title %}Submit Speedrun - StealTopRun{% endblock %}
 
 {% block content %}
-    <h2>Submit Your Speedrun</h2>
+<div class="max-w-6xl mx-auto mt-8 px-4 sm:px-6 mb-16">
+    <div class="mb-10 border-b border-gray-700/50 pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="space-y-3">
+            <a href="{% url 'category-leaderboard' game_id=game.id type_id=speedrun_type.id %}" class="inline-flex items-center text-sm text-gray-400 hover:text-purple-400 transition-colors font-medium group">
+                <span class="transform group-hover:-translate-x-1 transition-transform mr-1.5">&larr;</span> Back to {{ speedrun_type.name }}
+            </a>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight">Add Speedrun</h1>
+        </div>
+        
+        <div class="flex flex-wrap sm:flex-nowrap gap-3 self-start md:self-auto">
+            <div class="bg-gray-800/60 border border-gray-700 px-4 py-2.5 rounded-xl min-w-[140px] shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">Game</span>
+                <p class="text-white font-bold text-base leading-tight truncate">{{ game.name }}</p>
+            </div>
+            <div class="bg-purple-500/10 border border-purple-500/20 px-4 py-2.5 rounded-xl min-w-[140px] shadow-sm">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-purple-400 block mb-1">Category</span>
+                <p class="text-purple-400 font-bold text-base leading-tight truncate">{{ speedrun_type.name }}</p>
+            </div>
+        </div>
+    </div>
 
-    <form method="post">
-        {% csrf_token %}
-        
-        {{ form.as_p }}
-        
-        <button type="submit">Submit Record</button>
-    </form>
+    <div class="max-w-xl mx-auto">
+        <div class="bg-gradient-to-b from-gray-800 to-gray-800/90 border border-gray-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-sm">
+            <div class="mb-6 flex items-start gap-3.5">
+                <div>
+                    <h2 class="text-2xl font-bold text-white mb-1">Run Information</h2>
+                    <p class="text-sm text-gray-400">Fill out the form below to submit your run for verification.</p>
+                </div>
+            </div>
+
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="p-4 text-sm text-red-400 bg-red-950/40 border border-red-900/60 rounded-xl flex items-center gap-2">
+                        <svg class="w-5 h-5 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="form-fields-wrapper">
+                    {{ form.as_p }}
+                </div>
+
+                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-bold transition shadow-lg">
+                    Submit Speedrun
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-fields-wrapper p { 
+        margin-bottom: 1.25rem; 
+        display: flex; 
+        flex-direction: column; 
+    }
+    .form-fields-wrapper p:last-child { 
+        margin-bottom: 0; 
+    }
+    .form-fields-wrapper label { 
+        font-size: 0.8rem; 
+        color: #9ca3af; 
+        margin-bottom: 0.45rem; 
+        font-weight: 700; 
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .form-fields-wrapper input, 
+    .form-fields-wrapper select, 
+    .form-fields-wrapper textarea { 
+        background-color: #111827; 
+        border: 1px solid #374151; 
+        border-radius: 0.75rem; 
+        padding: 0.75rem 1rem; 
+        color: white; 
+        width: 100%;
+        font-size: 0.95rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .form-fields-wrapper select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1.2em;
+        padding-right: 2.5rem; /* Zabezpieczenie, aby tekst nie nachodził na strzałkę */
+    }
+
+    .form-fields-wrapper input:focus, 
+    .form-fields-wrapper select:focus, 
+    .form-fields-wrapper textarea:focus {
+        outline: none; 
+        border-color: #a855f7;
+        background-color: #0d131f;
+        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12);
+    }
+    .form-fields-wrapper textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    .form-fields-wrapper .errorlist { 
+        color: #f87171; 
+        font-size: 0.8rem; 
+        margin-top: 0.45rem; 
+        list-style-type: none; 
+        padding-left: 0; 
+        font-weight: 500;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .form-fields-wrapper .errorlist li::before {
+        content: "• ";
+        color: #f87171;
+    }
+</style>
 {% endblock %}
