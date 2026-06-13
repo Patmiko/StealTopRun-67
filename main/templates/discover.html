@@ -58,7 +58,7 @@
                                     </td>
                                     <td class="p-4 text-right">
                                         <a href="{% url 'speedrun-view' game_id=category.game.id type_id=category.id speedrun_id=run.id %}" class="font-mono font-black text-green-400 hover:text-green-300 transition">
-                                            {{ run.time }}s
+                                            {{ run.formatted_time }}
                                         </a>
                                     </td>
                                 </tr>
