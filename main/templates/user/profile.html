@@ -4,7 +4,10 @@
 
 {% block content %}
 <div class="max-w-5xl mx-auto space-y-8">
-
+    <div>
+        <h1 class="text-4xl font-extrabold text-white">My Profile</h1>
+        <p class="text-gray-400 mt-1">Check your current speedruns or modify your account informations.</p>
+    </div>
     <div class="bg-gray-800 border border-gray-700 rounded-2xl p-8 shadow-lg flex flex-col md:flex-row items-center gap-6">
         
         <div class="flex-shrink-0">
@@ -23,9 +26,10 @@
             
             {% if user == profile_user %}
                 <div class="mt-4">
-                    <button class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition border border-gray-600">
-                        Edit Profile (Coming Soon)
-                    </button>
+                    <a href="{% url 'edit-profile' username=user.username %}" 
+                    class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-md">
+                        Edit Profile
+                    </a>
                 </div>
             {% endif %}
         </div>

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ category.name }} Leaderboard - {{ game.name }}{% endblock %}
+{% block title %} {{ category.name }} Leaderboard - {{ game.name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-5xl mx-auto mt-8">
@@ -110,8 +110,7 @@
                         </td>
                         
                         <td class="p-4">
-                            <a href="{% url 'user-profile' username=run.user.username %}" 
-                            class="font-bold text-purple-400 hover:text-purple-300 transition">
+                            <a href="{% url 'user-profile' username=run.user.username %}" class="font-bold text-purple-400 hover:text-purple-300 transition">
                                 {{ run.user.username }}
                             </a>
                         </td>

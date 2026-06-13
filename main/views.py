@@ -1,14 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count, Q, Prefetch
 from django.views import View
 from .models import User, Game, Speedrun, SpeedrunType
-from .forms import SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm
+from .forms import SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm
 import json
 
 
@@ -79,6 +80,64 @@ class UserProfileView(View):
             'user_runs': user_runs,
         }
         return render(request, 'user/profile.html', context)
+
+@method_decorator(login_required(login_url='user-login'), name='dispatch')
+class EditUserProfileView(View):
+    def get(self, request, username, *args, **kwargs):
+        profile_user = get_object_or_404(User, username=username)
+        
+        if request.user != profile_user:
+            messages.error(request, "You cannot edit someone else's profile.")
+            return redirect('user-profile', username=profile_user.username)
+            
+        profile_form = UserProfileEditForm(instance=profile_user)
+        password_form = PasswordChangeForm(user=profile_user)
+        
+        context = {
+            'profile_user': profile_user,
+            'profile_form': profile_form,
+            'password_form': password_form,
+        }
+        return render(request, 'user/edit-profile.html', context)
+
+    def post(self, request, username, *args, **kwargs):
+        profile_user = get_object_or_404(User, username=username)
+        
+        if request.user != profile_user:
+            messages.error(request, "You cannot edit someone else's profile.")
+            return redirect('user-profile', username=profile_user.username)
+
+        action = request.POST.get('action')
+        profile_form = UserProfileEditForm(instance=profile_user)
+        password_form = PasswordChangeForm(user=profile_user)
+
+        if action == 'update_profile':
+            profile_form = UserProfileEditForm(request.POST, request.FILES, instance=profile_user)
+            if profile_form.is_valid():
+                user = profile_form.save()
+                messages.success(request, 'Profile updated successfully!')
+
+                return redirect('user-profile', username=user.username)
+            else:
+                messages.error(request, 'Please correct the errors in the profile form.')
+
+        elif action == 'change_password':
+            password_form = PasswordChangeForm(user=profile_user, data=request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Your password was successfully updated!')
+                return redirect('user-profile', username=profile_user.username)
+            else:
+                messages.error(request, 'Please correct the errors in the password form.')
+
+        context = {
+            'profile_user': profile_user,
+            'profile_form': profile_form,
+            'password_form': password_form,
+        }
+        return render(request, 'user/edit-profile.html', context)
 
 
 #GAME PATHS
