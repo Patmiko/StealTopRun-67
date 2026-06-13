@@ -4,146 +4,55 @@
 {% block extrahead %}
     {{ block.super }}
     <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: ['selector', '[data-theme="dark"]']
+        }
+    </script>
     {{ formset.media }}
 {% endblock %}
 
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
     <style>
-        .container-wrapper {
-            max-width: 1200px;
-            margin-top: 25px;
-        }
-
-        /* Tab Navigation */
-        .game-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
         .tab-btn {
-            background-color: #e0e0e0;
-            color: #333;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.2s;
+            transition: all 0.2s ease-in-out;
         }
-        
-        .tab-btn:hover {
-            background-color: #d0d7dd;
-        }
-        
+
         .tab-btn.active {
-            background-color: #417690;
-            color: white;
+            background-color: #4f46e5 !important; 
+            color: #ffffff !important;
+            border-color: #4338ca !important;
         }
 
-        /* Status Visual Cues for Tabs */
         .tab-btn.marked-rejected {
-            background-color: #f8d7da !important;
-            color: #721c24 !important;
-            border: 1px solid #f5c6cb;
+            background-color: #ffe4e6 !important; 
+            color: #e11d48 !important; 
+            border-color: #fecdd3 !important;
         }
+
         .tab-btn.marked-rejected.active {
-            background-color: #dc3545 !important;
-            color: white !important;
-        }
-        
-        /* Card Layout */
-        .game-card {
-            background: #747474;
-            border: 1px solid #d0d7dd;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
-        }
-        
-        .game-card-body {
-            padding: 24px;
+            background-color: #e11d48 !important; 
+            color: #ffffff !important;
+            border-color: #be123c !important;
         }
 
-        /* Rejection Banner Box */
-        .reject-box-row {
-            background-color: #636363;
-            border: 1px dashed #fc8181;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        html[data-theme="dark"] .tab-btn {
+            background-color: #1e293b; 
+            color: #cbd5e1; 
+            border-color: #334155;
         }
-        .reject-box-row label {
-            color: #c53030 !important;
-            font-weight: bold;
-            display: inline !important;
-            margin: 0 !important;
-            cursor: pointer;
-        }
-        .reject-box-row input[type="checkbox"] {
-            transform: scale(1.3);
-            cursor: pointer;
-        }
-
-        .form-row {
-            padding: 15px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .form-row:last-child {
-            border-bottom: none;
-        }
-        
-        .form-row label {
-            font-weight: bold;
-            color: #333;
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .game-card-body textarea, 
-        .game-card-body input[type="text"] {
-            background-color: #6e6e6e !important;
-            color: #000000 !important;
-            border: 1px solid #ccc !important;
-            border-radius: 4px;
-            padding: 8px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .game-card-body .selector {
-            float: none !important;
-            display: flex;
-            align-items: center;
-        }
-        .game-card-body .selector select {
-            background-color: #f5c1c1 !important;
-            color: #000000 !important;
-            border: 1px solid #ccc !important;
-            min-height: 170px;
-        }
-
-        .submit-row {
-            margin-top: 30px;
-            background: #f4f6f8;
-            border: 1px solid #d0d7dd;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: right;
+        html[data-theme="dark"] .tab-btn.marked-rejected {
+            background-color: #4c0519 !important; 
+            color: #fda4af !important; 
+            border-color: #881337 !important;
         }
     </style>
 {% endblock %}
 
 {% block content %}
-    <div id="content-main">
+    <div id="content-main" class="max-w-6xl my-6 mx-0 font-sans text-slate-800 dark:text-slate-200">
         <form action="" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
@@ -153,13 +62,17 @@
 
             {{ formset.management_form }}
 
-            <div class="container-wrapper">
+            <div>
+                <div class="mb-8 bg-indigo-600 dark:bg-indigo-800 rounded-xl p-6 shadow-md border border-indigo-700">
+                    <h1 class="text-3xl font-extrabold tracking-tight !text-white mb-2 mt-0">{{ title|default:"Configure Game Details" }}</h1>
+                    <p class="text-base font-medium !text-indigo-100 m-0">Review and configure the game requests below carefully before processing.</p>
+                </div>
                 
-                <div class="game-tabs">
+                <div class="flex flex-wrap gap-2 mb-6">
                     {% for form in formset %}
                         <button type="button" 
                                 id="tab-btn-{{ forloop.counter }}"
-                                class="tab-btn {% if forloop.first %}active{% endif %}" 
+                                class="tab-btn px-4 py-2.5 rounded-lg text-sm font-bold border border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 {% if forloop.first %}active{% endif %}" 
                                 onclick="switchGameTab(event, 'card-{{ forloop.counter }}')">
                             {{ form.initial.game_title|default:"Game" }}
                         </button>
@@ -168,28 +81,42 @@
 
                 <div class="game-cards-container">
                     {% for form in formset %}
-                        <div class="game-card" id="card-{{ forloop.counter }}" style="display: {% if forloop.first %}block{% else %}none{% endif %};">
-                            <div class="game-card-body">
+                        <div class="game-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden" 
+                             id="card-{{ forloop.counter }}" 
+                             style="display: {% if forloop.first %}block{% else %}none{% endif %};">
+                             
+                            <div class="p-6 space-y-6">
                                 
                                 {% for hidden in form.hidden_fields %}
                                     {{ hidden }}
                                 {% endfor %}
 
-                                <div class="reject-box-row">
-                                    {{ form.reject }}
-                                    <label for="{{ form.reject.id_for_label }}">{{ form.reject.label }}</label>
+                                <div class="bg-rose-50 border border-dashed border-rose-300 rounded-lg p-4 flex items-center gap-3 dark:bg-rose-950/20 dark:border-rose-900/50 hover:bg-rose-100/50 dark:hover:bg-rose-900/30 transition-colors">
+                                    <div class="flex items-center h-5 [&_input]:w-5 [&_input]:h-5 [&_input]:text-rose-600 [&_input]:border-rose-300 [&_input]:rounded [&_input]:focus:ring-rose-500 [&_input]:cursor-pointer [&_input]:reject-checkbox">
+                                        {{ form.reject }}
+                                    </div>
+                                    <label for="{{ form.reject.id_for_label }}" class="text-sm font-bold text-rose-700 dark:text-rose-400 cursor-pointer select-none w-full">
+                                        {{ form.reject.label }}
+                                    </label>
                                 </div>
 
-                                {% for field in form %}
-                                    {% if not field.is_hidden and field.name != 'reject' %}
-                                        <div class="form-row field-box-{{ field.name }}">
-                                            {{ field.label_tag }}
-                                            <div class="field-container">{{ field }}</div>
-                                            {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
-                                            {% if field.errors %}<div class="error">{{ field.errors }}</div>{% endif %}
-                                        </div>
-                                    {% endif %}
-                                {% endfor %}
+                                <div class="space-y-5 bg-slate-50/50 dark:bg-slate-800/20 p-5 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                                    
+                                    <div class="space-y-4 [&_label]:block [&_label]:text-sm [&_label]:font-semibold [&_label]:text-slate-700 [&_label]:dark:text-slate-300 [&_label]:mb-1 [&_input[type='text']]:w-full [&_input[type='text']]:rounded-md [&_input[type='text']]:border [&_input[type='text']]:border-slate-300 [&_input[type='text']]:dark:border-slate-600 [&_input[type='text']]:px-3 [&_input[type='text']]:py-2 [&_input[type='text']]:text-sm [&_input[type='text']]:bg-white [&_input[type='text']]:dark:bg-slate-800 [&_input[type='text']]:text-slate-900 [&_input[type='text']]:dark:text-slate-100 [&_input[type='text']]:focus:ring-2 [&_input[type='text']]:focus:ring-indigo-500 [&_textarea]:w-full [&_textarea]:rounded-md [&_textarea]:border [&_textarea]:border-slate-300 [&_textarea]:dark:border-slate-600 [&_textarea]:px-3 [&_textarea]:py-2 [&_textarea]:text-sm [&_textarea]:bg-white [&_textarea]:dark:bg-slate-800 [&_textarea]:text-slate-900 [&_textarea]:dark:text-slate-100 [&_textarea]:focus:ring-2 [&_textarea]:focus:ring-indigo-500 [&_select]:w-full [&_select]:rounded-md [&_select]:border [&_select]:border-slate-300 [&_select]:dark:border-slate-600 [&_select]:px-3 [&_select]:py-2 [&_select]:text-sm [&_select]:bg-white [&_select]:dark:bg-slate-800 [&_select]:text-slate-900 [&_select]:dark:text-slate-100 [&_select]:focus:ring-2 [&_select]:focus:ring-indigo-500 [&_.help]:text-xs [&_.help]:text-slate-500 [&_.help]:mt-1.5 [&_.error]:text-rose-600 [&_.error]:text-sm [&_.error]:font-medium [&_.error]:mt-1.5 [&_.selector]:flex [&_.selector]:items-center [&_.selector]:gap-4">
+                                        
+                                        {% for field in form %}
+                                            {% if not field.is_hidden and field.name != 'reject' %}
+                                                <div class="form-row border-b border-slate-200 dark:border-slate-700/50 pb-4 last:border-0 last:pb-0">
+                                                    {{ field.label_tag }}
+                                                    <div class="field-container mt-1">{{ field }}</div>
+                                                    {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+                                                    {% if field.errors %}<div class="error">{{ field.errors }}</div>{% endif %}
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                    </div>
+                                </div>
                                 
                             </div>
                         </div>
@@ -198,9 +125,9 @@
 
                 <input type="hidden" name="action" value="accept_and_configure_game" />
 
-                <div class="submit-row">
-                    <a href="." class="button cancel-link" style="padding: 10px 15px; text-decoration: none;">{% trans "Cancel" %}</a>
-                    <input type="submit" name="apply" value="{% trans 'Apply Decisions' %}" class="default" style="padding: 10px 20px;" />
+                <div class="mt-8 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 rounded-xl flex justify-end items-center gap-4 shadow-sm">
+                    <a href="." class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-sm transition-colors decoration-transparent">{% trans "Cancel" %}</a>
+                    <input type="submit" name="apply" value="{% trans 'Apply Decisions' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border border-indigo-700 focus:ring-4 focus:ring-indigo-500/30" />
                 </div>
             </div>
         </form>
@@ -223,23 +150,25 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            const checkboxes = document.querySelectorAll('.reject-checkbox');
+            const checkboxes = document.querySelectorAll('.reject-checkbox, input[name$="-reject"]');
+            
             checkboxes.forEach((checkbox, index) => {
                 const tabId = `tab-btn-${index + 1}`;
                 const tabButton = document.getElementById(tabId);
                 
-                // Set layout on initial render
-                if (checkbox.checked) {
+                if (tabButton && checkbox.checked) {
                     tabButton.classList.add('marked-rejected');
                 }
 
-                checkbox.addEventListener('change', function() {
-                    if (this.checked) {
-                        tabButton.classList.add('marked-rejected');
-                    } else {
-                        tabButton.classList.remove('marked-rejected');
-                    }
-                });
+                if (tabButton) {
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            tabButton.classList.add('marked-rejected');
+                        } else {
+                            tabButton.classList.remove('marked-rejected');
+                        }
+                    });
+                }
             });
         });
     </script>
