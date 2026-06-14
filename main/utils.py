@@ -4,34 +4,36 @@ from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 def send_verification_email(request, user):
     """
-    Generates a cryptographically signed, one-time-use token 
-    and sends a verification email to the user.
+    Generates a token and sends a beautifully formatted HTML verification email.
     """
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-
     token = default_token_generator.make_token(user)
-
     domain = request.get_host()
 
     verification_path = reverse('verify-email', kwargs={'uidb64': uid, 'token': token})
-
     verification_url = f"http://{domain}{verification_path}"
 
     subject = "Verify your Speedrun Tracker Account"
-    message = (
-        f"Hi {user.username},\n\n"
-        f"Thank you for registering! Please click the link below to verify your email address:\n\n"
-        f"{verification_url}\n\n"
-        f"This link will expire in a few hours."
-    )
+    
+    context = {
+        'username': user.username,
+        'verification_url': verification_url,
+    }
+    
+    html_message = render_to_string('emails/verification_email.html', context)
+    
+    plain_message = strip_tags(html_message)
 
     send_mail(
         subject=subject,
-        message=message,
+        message=plain_message,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
-        fail_silently=False,  # If something is wrong with your SMTP config, this will raise an error so you know about it
+        html_message=html_message,
+        fail_silently=False,
     )
