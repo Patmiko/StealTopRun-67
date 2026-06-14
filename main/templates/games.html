@@ -3,8 +3,26 @@
 {% block title %}Browse Games - StealTopRun{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto space-y-8 mt-4">
+<div class="{% if not search_term %}pl-40 -mt-8 {% endif %} max-w-7xl mx-auto space-y-8">
 
+    {% if not search_term %}
+    <aside class="fixed left-0 top-16 w-56 h-[calc(100vh-64px)] border-r border-gray-700 bg-gray-900 z-40 overflow-y-auto">
+        <div class="pt-6 pl-8 pr-8"> 
+            <h3 class="text-white font-bold mb-6 text-xl">Categories</h3>
+            <hr class="border-gray-700 mb-6">
+            <ul class="space-y-4">
+                {% for category_name, games_list in grouped_games.items %}
+                    <li>
+                        <a href="#cat-{{ forloop.counter }}" class="block text-gray-400 hover:text-purple-400 transition text-base font-medium">
+                            {{ category_name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+    {% endif %}
+    
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-700 pb-6">
         <div>
             <h1 class="text-4xl font-extrabold text-white">Browse Games</h1>
@@ -82,7 +100,7 @@
     {% else %}
         <div class="space-y-12">
             {% for category_name, games_list in grouped_games.items %}
-                <div class="space-y-4">
+                <div id="cat-{{ forloop.counter }}" class="space-y-4 scroll-mt-20">
                     <h2 class="text-2xl font-bold text-gray-400 border-b border-gray-800 pb-2">
                         {{ category_name }}
                     </h2>
