@@ -129,4 +129,11 @@ EMAIL_PORT = os.environ.get('EMAIL_PORT')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS') == 'True'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+
+DEFAULT_FROM_EMAIL = 'StealTopRun <noreply@yourdomain.com>'
+SERVER_EMAIL = 'StealTopRun Alerts <alerts@yourdomain.com>'
+
+# Token expiration settings
+PASSWORD_RESET_TIMEOUT = 7200  # 2 hours in seconds

@@ -1,5 +1,6 @@
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
@@ -8,9 +9,15 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count, Q, Prefetch
 from django.views import View
-from .models import User, Game, Speedrun, SpeedrunType
-from .forms import Category, SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm
+from .models import User, Game, Speedrun, SpeedrunType, VerificationStatus
+from .forms import Category, ResendVerificationForm, SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm
 import json
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.core.cache import cache
+from django.core import signing
+from .utils import send_verification_email, send_change_email, send_security_alert_email
 
 
 class HomeView(View):
@@ -42,13 +49,15 @@ class LoginView(View):
             # Otherwise, authenticate by username normally
             user = authenticate(request, username=username_or_email, password=password)
 
+        if user is not None and user.status != VerificationStatus.VERIFIED:
+            messages.error(request, 'Your email is not verified. Please check your inbox for the verification link.')
+            return render(request, 'email_resend.html')
         if user is not None:
             login(request, user)
             return redirect('home')
         else:
             messages.error(request, 'Invalid username/email or password.')
             return render(request, 'user/login.html')
-
 
 class RegisterView(View):
     def get(self, request, *args, **kwargs):
@@ -67,11 +76,19 @@ class RegisterView(View):
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username is already taken.')
             return render(request, 'user/register.html')
+        
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email is already registered.')
+            return render(request, 'user/register.html')
 
         # Create the User
         user = User.objects.create_user(username=username, email=email, password=password)
+        user.status = VerificationStatus.UNVERIFIED
+        user.save()
+        # Send the verification email
+        send_verification_email(request, user)
         
-        messages.success(request, 'Account created successfully! Please log in.')
+        messages.success(request, 'Verification email sent! Please check your inbox to verify your account before logging in.')
         return redirect('user-login')
 
 @method_decorator(login_required(login_url='user-login'), name='dispatch')
@@ -79,7 +96,6 @@ class LogoutView(View):
     def post(self, request, *args, **kwargs):
         logout(request)
         return redirect('user-login')
-    
 
 class UserProfileView(View):
     def get(self, request, username, *args, **kwargs):
@@ -109,6 +125,7 @@ class EditUserProfileView(View):
             'profile_user': profile_user,
             'profile_form': profile_form,
             'password_form': password_form,
+            'pending_email': request.session.get('pending_email'),
         }
         return render(request, 'user/edit-profile.html', context)
 
@@ -119,6 +136,8 @@ class EditUserProfileView(View):
             messages.error(request, "You cannot edit someone else's profile.")
             return redirect('user-profile', username=profile_user.username)
 
+        original_email = profile_user.email
+
         action = request.POST.get('action')
         profile_form = UserProfileEditForm(instance=profile_user)
         password_form = PasswordChangeForm(user=profile_user)
@@ -126,10 +145,39 @@ class EditUserProfileView(View):
         if action == 'update_profile':
             profile_form = UserProfileEditForm(request.POST, request.FILES, instance=profile_user)
             if profile_form.is_valid():
-                user = profile_form.save()
-                messages.success(request, 'Profile updated successfully!')
+                user_instance = profile_form.save(commit=False)
+                
+                new_username = profile_form.cleaned_data.get('username')
+                new_email = profile_form.cleaned_data.get('email')
 
-                return redirect('user-profile', username=user.username)
+                has_errors = False
+                if User.objects.filter(username=new_username).exclude(pk=profile_user.pk).exists():
+                    profile_form.add_error('username', 'This username is already taken.')
+                    has_errors = True
+                    
+                if User.objects.filter(email=new_email).exclude(pk=profile_user.pk).exists():
+                    profile_form.add_error('email', 'This email is already taken.')
+                    has_errors = True
+
+                if not has_errors:
+                    user_instance.username = new_username
+                    
+                    if new_email != original_email:
+                        messages.info(request, 'A verification link has been sent to your new email. Please verify to complete the change.')
+
+                        user_instance.email = original_email
+                        profile_user.email = original_email
+                        send_change_email(request, profile_user, new_email)
+                        send_security_alert_email(request, profile_user, original_email, new_email)
+                        request.session['pending_email'] = new_email
+                    else:
+                        user_instance.email = original_email
+
+                    user_instance.save()
+                    profile_form.save_m2m() 
+                    
+                    messages.success(request, 'Profile updated successfully!')
+                    return redirect('user-profile', username=user_instance.username)
             else:
                 messages.error(request, 'Please correct the errors in the profile form.')
 
@@ -148,6 +196,7 @@ class EditUserProfileView(View):
             'profile_user': profile_user,
             'profile_form': profile_form,
             'password_form': password_form,
+            'pending_email': request.session.get('pending_email'),
         }
         return render(request, 'user/edit-profile.html', context)
 
@@ -172,9 +221,124 @@ class DeleteUserView(View):
         messages.success(request, 'Your account has been deleted successfully.')
         return redirect('home')
 
-#GAME PATHS
+# EMAIL VERIFICATION PATHS
 #===================================================================================================================
 
+class EmailVerificationView(View):
+    def get(self, request, uidb64, token, *args, **kwargs):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and default_token_generator.check_token(user, token):
+            user.status = VerificationStatus.VERIFIED
+            user.save()
+            messages.success(request, 'Your email has been verified! You can now log in.')
+            return render(request, 'user/login.html')
+        else:
+            messages.error(request, 'Invalid or expired verification link. Please request a new one.')
+            return render(request, 'email_resend.html')
+        
+class ResendVerificationEmailView(View):
+    def post(self, request, *args, **kwargs):
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return render(request, 'email_resend.html', {'error': 'If that email is registered and unverified, a new link has been sent.'})
+            
+        # Check if already verified
+        if user.status == VerificationStatus.VERIFIED:
+            return render(request, 'email_resend.html', {'error': 'This account is already verified.'})
+            
+        # Check the Cooldown Cache
+        cache_key = f"email_cooldown_{user.pk}"
+        if cache.get(cache_key):
+            return HttpResponse("Please wait 15 minutes before requesting another email.", status=429)
+            
+        # Send the email
+        send_verification_email(request, user)
+        
+        # Set the cooldown timer
+        cache.set(cache_key, True, timeout=900)
+        
+        return HttpResponse("If that email is registered and unverified, a new link has been sent.")
+    
+class verificationPendingView(View):
+    def post(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.status == VerificationStatus.VERIFIED:
+            return redirect('home')
+    
+        form = ResendVerificationForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                messages.info(request, "If that email is registered and unverified, a new link has been sent.")
+                return redirect('verification-pending')
+
+            if user.status == VerificationStatus.VERIFIED:
+                messages.warning(request, "This account is already verified. Please log in.")
+                return redirect('user-login')
+
+            cache_key = f"email_cooldown_{user.pk}"
+            if cache.get(cache_key):
+                messages.error(request, "Please wait 15 minutes before requesting another email.")
+                return render(request, 'email_resend.html', {'form': form})
+
+            # Send email and trigger cooldown
+            send_verification_email(request, user)
+            cache.set(cache_key, True, timeout=900)
+            
+            messages.success(request, "A new verification link has been sent to your email.")
+            return redirect('verification-pending')
+        return render(request, 'email_resend.html', {'form': form})
+    def get(self, request, *args, **kwargs):
+        initial_data = {}
+        if request.user.is_authenticated:
+            initial_data['email'] = request.user.email
+        form = ResendVerificationForm(initial=initial_data)
+
+        return render(request, 'email_resend.html', {'form': form})
+    
+class ChangeEmailView(View):
+    def get(self, request, uidb64, token, *args, **kwargs):
+        User = get_user_model()
+        signed_email = request.GET.get('target')
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+            
+            new_email = signing.loads(signed_email, max_age=86400)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist, 
+                signing.BadSignature, signing.SignatureExpired):
+            user = None
+            new_email = None
+
+        if user is not None and new_email is not None and default_token_generator.check_token(user, token):
+            
+            if User.objects.filter(email=new_email).exclude(pk=user.pk).exists():
+                messages.error(request, "This email address is already registered to another account.")
+                return redirect('user-profile', username=user.username)
+            
+            user.email = new_email
+            user.save()
+            
+            if 'pending_email' in request.session:
+                del request.session['pending_email']
+                
+            messages.success(request, "Your email has been successfully updated!")
+            return redirect('user-profile', username=user.username)
+        else:
+            messages.error(request, "This verification link is invalid or has expired.")
+            return redirect('home')
+#GAME PATHS
+#===================================================================================================================
 
 class GamesView(View):
     def get(self, request, *args, **kwargs):
@@ -205,7 +369,6 @@ class GameDetailView(View):
         game = get_object_or_404(Game, pk=game_id)
         speedrun_types = game.speedrun_types.all()
         return render(request, 'game_detail.html', {'game': game, 'speedrun_types': speedrun_types})
-    
     
 #SPEEDRUN TYPES PATHS
 #===================================================================================================================
@@ -325,7 +488,6 @@ class SpeedrunDeleteView(View):
             
         return redirect('category-leaderboard', game_id=game_id, type_id=type_id)
 
-
 class DiscoverView(View):
     def get(self, request, *args, **kwargs):
         one_week_ago = timezone.now().date() - timedelta(days=7)
@@ -348,7 +510,6 @@ class DiscoverView(View):
         ).order_by('-recent_run_count').prefetch_related(valid_runs)[:5]
 
         return render(request, 'discover.html', {'top_categories': top_categories})
-
 
 #REQUESTS PATHS
 #===================================================================================================================
@@ -430,7 +591,6 @@ class ReportUserView(View):
             'target_name': target_user.username,
             'report_type': 'User'
         })
-
 
 @method_decorator(login_required(login_url='user-login'), name='dispatch')
 class ReportSpeedrunView(View):

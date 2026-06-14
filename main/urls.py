@@ -15,6 +15,13 @@ urlpatterns = [
     path('user/delete', views.DeleteUserView.as_view(), name='delete-profile'),
     path('users/search/', views.SearchUserView.as_view(), name='user-search'),
 
+    # Email Verification
+    path('verify-email/<str:uidb64>/<str:token>/', views.EmailVerificationView.as_view(), name='verify-email'),
+    path('resend-verification/', views.ResendVerificationEmailView.as_view(), name='resend-verification'),
+    path('verify-pending/', views.verificationPendingView.as_view(), name='verification-pending'),
+    # Email Change Verification
+    path('change-email/<str:uidb64>/<str:token>/', views.ChangeEmailView.as_view(), name='change-email'),
+
 
     # Games & Leaderboards
     path('games/', views.GamesView.as_view(), name='game-list'),
