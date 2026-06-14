@@ -150,6 +150,15 @@ class SearchUserView(View):
             users = User.objects.none()
             
         return render(request, 'user/search_users.html', {'users': users, 'search_term': search_query})
+    
+class DeleteUserView(View):
+    @method_decorator(login_required(login_url='user-login'))
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, 'Your account has been deleted successfully.')
+        return redirect('home')
 
 #GAME PATHS
 #===================================================================================================================
