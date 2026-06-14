@@ -25,16 +25,28 @@ class LoginView(View):
         return render(request, 'user/login.html')
 
     def post(self, request, *args, **kwargs):
-        username = request.POST.get('username')
+        username_or_email = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = authenticate(request, username=username, password=password)
+        user = None
+
+        if '@' in username_or_email:
+            # Try to find the user by email
+            try:
+                user_obj = User.objects.get(email=username_or_email)
+                username = user_obj.username
+                user = authenticate(request, username=username, password=password)
+            except User.DoesNotExist:
+                user = None
+        else:
+            # Otherwise, authenticate by username normally
+            user = authenticate(request, username=username_or_email, password=password)
 
         if user is not None:
             login(request, user)
             return redirect('home')
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, 'Invalid username/email or password.')
             return render(request, 'user/login.html')
 
 
