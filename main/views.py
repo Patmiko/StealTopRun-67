@@ -1,3 +1,6 @@
+import token
+
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.utils.decorators import method_decorator
@@ -11,6 +14,12 @@ from django.views import View
 from .models import User, Game, Speedrun, SpeedrunType
 from .forms import Category, SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm
 import json
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.core.cache import cache
+from .utils import send_verification_email
+from models import VerificationStatus
 
 
 class HomeView(View):
@@ -151,6 +160,50 @@ class SearchUserView(View):
             
         return render(request, 'user/search_users.html', {'users': users, 'search_term': search_query})
 
+
+class EmailVerificationView(View):
+    def get(self, request, uidb64, token, *args, **kwargs):
+        try:
+        # Decrypt the User ID
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        # Check if the user exists and the token is valid/unexpired
+        if user is not None and default_token_generator.check_token(user, token):
+            # Update custom VerificationStatus
+            user.status = VerificationStatus.VERIFIED
+            user.save()
+            return HttpResponse("Email verified successfully! You can now log in.")
+        else:
+            return HttpResponse("This verification link is invalid or has expired.", status=400)
+        
+class ResendVerificationEmailView(View):
+    @method_decorator(login_required(login_url='user-login'))
+    def post(self, request, *args, **kwargs):
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return HttpResponse("If that email is registered and unverified, a new link has been sent.")
+            
+        # Check if already verified
+        if user.status == VerificationStatus.VERIFIED:
+            return HttpResponse("This account is already verified.", status=400)
+            
+        # Check the Cooldown Cache
+        cache_key = f"email_cooldown_{user.pk}"
+        if cache.get(cache_key):
+            return HttpResponse("Please wait 2 minutes before requesting another email.", status=429)
+            
+        # Send the email
+        send_verification_email(request, user)
+        
+        # Set the cooldown timer
+        cache.set(cache_key, True, timeout=120)
+        
+        return HttpResponse("If that email is registered and unverified, a new link has been sent.")
 #GAME PATHS
 #===================================================================================================================
 
