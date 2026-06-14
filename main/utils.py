@@ -99,3 +99,33 @@ def send_security_alert_email(request, user, old_email, new_email):
         html_message=html_message,
         fail_silently=False,
     )
+
+def send_password_reset_email(request, user, target):
+    domain = request.get_host()
+    
+    link_data = {
+        'user_id': user.pk,
+        'password_data': target
+    }
+    
+    secure_token = signing.dumps(link_data)
+    
+    reset_url = f"http://{domain}/reset-password/{secure_token}/"
+    
+    subject = "Confirm your StealTopRun Password Change"
+    context = {
+        'username': user.username,
+        'reset_url': reset_url,
+    }
+    
+    html_message = render_to_string('emails/password_reset_email.html', context)
+    plain_message = strip_tags(html_message)
+
+    send_mail(
+        subject=subject,
+        message=plain_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        html_message=html_message,
+        fail_silently=False,
+    )

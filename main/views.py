@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
@@ -17,7 +17,7 @@ from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
 from django.core import signing
-from .utils import send_verification_email, send_change_email, send_security_alert_email
+from .utils import send_verification_email, send_change_email, send_security_alert_email, send_password_reset_email
 
 
 class HomeView(View):
@@ -193,11 +193,18 @@ class EditUserProfileView(View):
         elif action == 'change_password':
             password_form = PasswordChangeForm(user=profile_user, data=request.POST)
             if password_form.is_valid():
-                user = password_form.save()
+                # 1. Extract the validated new password
+                new_password = password_form.cleaned_data.get('new_password1')
+                
+                # 2. Sign the password so it can be passed in the URL
+                signed_password = signing.dumps(new_password)
+                
+                # 3. Pass the signed password as a target to your email utility
+                send_password_reset_email(request, profile_user, target=signed_password)
 
-                update_session_auth_hash(request, user)
-                messages.success(request, 'Your password was successfully updated!')
-                return redirect('user-profile', username=profile_user.username)
+                messages.info(request, 'A password confirmation link has been sent to your email. Please check your inbox to finalize the change and login with your new password.')
+                logout(request)
+                return redirect('user-login')
             else:
                 messages.error(request, 'Please correct the errors in the password form.')
 
@@ -346,6 +353,38 @@ class ChangeEmailView(View):
         else:
             messages.error(request, "This verification link is invalid or has expired.")
             return redirect('home')
+
+
+class ResetPasswordView(View):
+    def get(self, request, token, *args, **kwargs): 
+        User = get_user_model()
+        
+        try:
+            data = signing.loads(token, max_age=86400)
+            
+            user = User.objects.get(pk=data['user_id'])
+   
+            new_password = signing.loads(data['password_data'], max_age=86400)
+            
+        except (TypeError, ValueError, User.DoesNotExist, signing.BadSignature, signing.SignatureExpired):
+            user = None
+            new_password = None
+
+        if user is not None and new_password is not None:        
+            user.set_password(new_password)
+            user.save()
+            
+            if 'pending_email' in request.session:
+                del request.session['pending_email']
+                
+            update_session_auth_hash(request, user)
+            
+            messages.success(request, "Your password has been successfully updated!")
+            return redirect('user-login')
+        else:
+            messages.error(request, "This confirmation link is invalid or has expired.")
+            return redirect('home')
+
 
 # GAME PATHS
 # ===================================================================================================================
