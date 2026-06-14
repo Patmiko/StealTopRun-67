@@ -3,7 +3,7 @@ from urllib import request
 
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
@@ -19,7 +19,8 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
-from .utils import send_verification_email
+from django.core import signing
+from .utils import send_verification_email, send_change_email
 
 
 class HomeView(View):
@@ -117,6 +118,7 @@ class EditUserProfileView(View):
             'profile_user': profile_user,
             'profile_form': profile_form,
             'password_form': password_form,
+            'pending_email': request.session.get('pending_email'),
         }
         return render(request, 'user/edit-profile.html', context)
 
@@ -127,6 +129,8 @@ class EditUserProfileView(View):
             messages.error(request, "You cannot edit someone else's profile.")
             return redirect('user-profile', username=profile_user.username)
 
+        original_email = profile_user.email
+
         action = request.POST.get('action')
         profile_form = UserProfileEditForm(instance=profile_user)
         password_form = PasswordChangeForm(user=profile_user)
@@ -134,10 +138,39 @@ class EditUserProfileView(View):
         if action == 'update_profile':
             profile_form = UserProfileEditForm(request.POST, request.FILES, instance=profile_user)
             if profile_form.is_valid():
-                user = profile_form.save()
-                messages.success(request, 'Profile updated successfully!')
+                user_instance = profile_form.save(commit=False)
+                
+                new_username = profile_form.cleaned_data.get('username')
+                new_email = profile_form.cleaned_data.get('email')
 
-                return redirect('user-profile', username=user.username)
+                has_errors = False
+                if User.objects.filter(username=new_username).exclude(pk=profile_user.pk).exists():
+                    profile_form.add_error('username', 'This username is already taken.')
+                    has_errors = True
+                    
+                if User.objects.filter(email=new_email).exclude(pk=profile_user.pk).exists():
+                    profile_form.add_error('email', 'This email is already taken.')
+                    has_errors = True
+
+                if not has_errors:
+                    user_instance.username = new_username
+                    
+                    if new_email != original_email:
+                        messages.info(request, 'A verification link has been sent to your new email. Please verify to complete the change.')
+                        request.session['pending_email'] = new_email
+
+                        user_instance.email = original_email
+                        profile_user.email = original_email
+                        send_change_email(request, profile_user, new_email)
+
+                    else:
+                        user_instance.email = original_email
+
+                    user_instance.save()
+                    profile_form.save_m2m() 
+                    
+                    messages.success(request, 'Profile updated successfully!')
+                    return redirect('user-profile', username=user_instance.username)
             else:
                 messages.error(request, 'Please correct the errors in the profile form.')
 
@@ -156,6 +189,7 @@ class EditUserProfileView(View):
             'profile_user': profile_user,
             'profile_form': profile_form,
             'password_form': password_form,
+            'pending_email': request.session.get('pending_email'),
         }
         return render(request, 'user/edit-profile.html', context)
 
@@ -177,15 +211,12 @@ class SearchUserView(View):
 class EmailVerificationView(View):
     def get(self, request, uidb64, token, *args, **kwargs):
         try:
-        # Decrypt the User ID
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             user = None
 
-        # Check if the user exists and the token is valid/unexpired
         if user is not None and default_token_generator.check_token(user, token):
-            # Update custom VerificationStatus
             user.status = VerificationStatus.VERIFIED
             user.save()
             messages.success(request, 'Your email has been verified! You can now log in.')
@@ -258,6 +289,39 @@ class verificationPendingView(View):
         form = ResendVerificationForm(initial=initial_data)
 
         return render(request, 'email_resend.html', {'form': form})
+    
+class ChangeEmailView(View):
+    def get(self, request, uidb64, token, *args, **kwargs):
+        User = get_user_model()
+        signed_email = request.GET.get('target')
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+            
+            new_email = signing.loads(signed_email, max_age=86400)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist, 
+                signing.BadSignature, signing.SignatureExpired):
+            user = None
+            new_email = None
+
+        if user is not None and new_email is not None and default_token_generator.check_token(user, token):
+            
+            if User.objects.filter(email=new_email).exclude(pk=user.pk).exists():
+                messages.error(request, "This email address is already registered to another account.")
+                return redirect('user-profile', username=user.username)
+            
+            user.email = new_email
+            user.save()
+            
+            if 'pending_email' in request.session:
+                del request.session['pending_email']
+                
+            messages.success(request, "Your email has been successfully updated!")
+            return redirect('user-profile', username=user.username)
+        else:
+            messages.error(request, "This verification link is invalid or has expired.")
+            return redirect('home')
 #GAME PATHS
 #===================================================================================================================
 

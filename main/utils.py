@@ -6,10 +6,11 @@ from django.urls import reverse
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.core import signing
 
 def send_verification_email(request, user):
     """
-    Generates a token and sends a beautifully formatted HTML verification email.
+    Generates a token and sends a HTML verification email.
     """
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
@@ -34,6 +35,41 @@ def send_verification_email(request, user):
         message=plain_message,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
+        html_message=html_message,
+        fail_silently=False,
+    )
+
+def send_change_email(request, user, new_email):
+    """
+    Generates a token, securely signs the new email string, 
+    and sends a HTML verification email directly to the new address.
+    """
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    domain = request.get_host()
+
+    signed_email = signing.dumps(new_email)
+
+    verification_path = reverse('change-email', kwargs={'uidb64': uid, 'token': token})
+    
+    change_email_url = f"http://{domain}{verification_path}?target={signed_email}"
+
+    subject = "Verify your new email for Speedrun Tracker"
+    
+    context = {
+        'username': user.username,
+        'change_email_url': change_email_url,
+        'new_email': new_email,
+    }
+    
+    html_message = render_to_string('emails/change_email.html', context)
+    plain_message = strip_tags(html_message)
+
+    send_mail(
+        subject=subject,
+        message=plain_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[new_email],
         html_message=html_message,
         fail_silently=False,
     )
