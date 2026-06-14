@@ -1,4 +1,5 @@
 import token
+from urllib import request
 
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -12,7 +13,7 @@ from datetime import timedelta
 from django.db.models import Count, Q, Prefetch
 from django.views import View
 from .models import User, Game, Speedrun, SpeedrunType, VerificationStatus
-from .forms import Category, SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm
+from .forms import Category, ResendVerificationForm, SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm
 import json
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
@@ -75,7 +76,7 @@ class RegisterView(View):
         # Send the verification email
         send_verification_email(request, user)
         
-        messages.success(request, 'Account created successfully! Please log in.')
+        messages.success(request, 'Verification email sent! Please check your inbox to verify your account before logging in.')
         return redirect('user-login')
 
 @method_decorator(login_required(login_url='user-login'), name='dispatch')
@@ -168,6 +169,8 @@ class SearchUserView(View):
         return render(request, 'user/search_users.html', {'users': users, 'search_term': search_query})
 
 
+# EMAIL VERIFICATION PATHS
+#===================================================================================================================
 class EmailVerificationView(View):
     def get(self, request, uidb64, token, *args, **kwargs):
         try:
@@ -211,6 +214,44 @@ class ResendVerificationEmailView(View):
         cache.set(cache_key, True, timeout=120)
         
         return HttpResponse("If that email is registered and unverified, a new link has been sent.")
+    
+class verificationPendingView(View):
+    def post(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.status == VerificationStatus.VERIFIED:
+            return redirect('home')
+    
+        form = ResendVerificationForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                messages.info(request, "If that email is registered and unverified, a new link has been sent.")
+                return redirect('verification-pending')
+
+            if user.status == VerificationStatus.VERIFIED:
+                messages.warning(request, "This account is already verified. Please log in.")
+                return redirect('user-login')
+
+            cache_key = f"email_cooldown_{user.pk}"
+            if cache.get(cache_key):
+                messages.error(request, "Please wait 15 minutes before requesting another email.")
+                return render(request, 'accounts/verification_pending.html', {'form': form})
+
+            # Send email and trigger cooldown
+            send_verification_email(request, user)
+            cache.set(cache_key, True, timeout=900)
+            
+            messages.success(request, "A new verification link has been sent to your email.")
+            return redirect('verification-pending')
+    def get(self, request, *args, **kwargs):
+        initial_data = {}
+        if request.user.is_authenticated:
+            initial_data['email'] = request.user.email
+        form = ResendVerificationForm(initial=initial_data)
+
+        return render(request, 'accounts/verification_pending.html', {'form': form})
 #GAME PATHS
 #===================================================================================================================
 

@@ -17,6 +17,7 @@ urlpatterns = [
     # Email Verification
     path('verify-email/<str:uidb64>/<str:token>/', views.EmailVerificationView.as_view(), name='verify-email'),
     path('resend-verification/', views.ResendVerificationEmailView.as_view(), name='resend-verification'),
+    path('verify-pending/', views.verificationPendingView.as_view(), name='verification-pending'),
 
 
     # Games & Leaderboards

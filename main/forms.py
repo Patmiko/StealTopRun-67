@@ -237,3 +237,11 @@ class AcceptSpeedrunRequestForm(forms.Form):
         return cleaned_data
 
 AcceptSpeedrunRequestFormSet = forms.formset_factory(AcceptSpeedrunRequestForm, extra=0)
+
+class ResendVerificationForm(forms.Form):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your email address'
+        })
+    )
