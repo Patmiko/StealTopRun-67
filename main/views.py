@@ -10,7 +10,7 @@ from datetime import timedelta
 from django.db.models import Count, Q, Prefetch
 from django.views import View
 from .models import User, Game, Speedrun, SpeedrunType, VerificationStatus
-from .forms import Category, ResendVerificationForm, SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm
+from .forms import Category, ResendVerificationForm, SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm, RegisterForm
 import json
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
@@ -64,37 +64,28 @@ class LoginView(View):
             messages.error(request, 'Invalid username/email or password.')
             return render(request, 'user/login.html')
 
+
 class RegisterView(View):
     def get(self, request, *args, **kwargs):
-        return render(request, 'user/register.html')
+        form = RegisterForm()
+        return render(request, 'user/register.html', {'form': form})
 
     def post(self, request, *args, **kwargs):
-        username = request.POST.get('username')
-        email = request.POST.get('email', '')
-        password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
+        form = RegisterForm(request.POST)
 
-        if password != password_confirm:
-            messages.error(request, 'Passwords do not match.')
-            return render(request, 'user/register.html')
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.status = VerificationStatus.UNVERIFIED
+            user.save()
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username is already taken.')
-            return render(request, 'user/register.html')
-        
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email is already registered.')
-            return render(request, 'user/register.html')
+            send_verification_email(request, user)
 
-        # Create the User
-        user = User.objects.create_user(username=username, email=email, password=password)
-        user.status = VerificationStatus.UNVERIFIED
-        user.save()
-        # Send the verification email
-        send_verification_email(request, user)
-        
-        messages.success(request, 'Verification email sent! Please check your inbox to verify your account before logging in.')
-        return redirect('user-login')
+            messages.success(request, 'Verification email sent! Please check your inbox to verify your account.')
+            return redirect('verification-pending')
+
+        return render(request, 'user/register.html', {'form': form})
+
 
 @method_decorator(login_required(login_url='user-login'), name='dispatch')
 class LogoutView(View):
