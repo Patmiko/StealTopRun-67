@@ -1,6 +1,3 @@
-import token
-from urllib import request
-
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
@@ -50,7 +47,6 @@ class LoginView(View):
             messages.error(request, 'Invalid username or password.')
             return render(request, 'user/login.html')
 
-
 class RegisterView(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'user/register.html')
@@ -88,7 +84,6 @@ class LogoutView(View):
     def post(self, request, *args, **kwargs):
         logout(request)
         return redirect('user-login')
-    
 
 class UserProfileView(View):
     def get(self, request, username, *args, **kwargs):
@@ -205,9 +200,9 @@ class SearchUserView(View):
             
         return render(request, 'user/search_users.html', {'users': users, 'search_term': search_query})
 
-
 # EMAIL VERIFICATION PATHS
 #===================================================================================================================
+
 class EmailVerificationView(View):
     def get(self, request, uidb64, token, *args, **kwargs):
         try:
@@ -226,7 +221,6 @@ class EmailVerificationView(View):
             return render(request, 'email_resend.html')
         
 class ResendVerificationEmailView(View):
-    @method_decorator(login_required(login_url='user-login'))
     def post(self, request, *args, **kwargs):
         email = request.POST.get('email')
         try:
@@ -325,7 +319,6 @@ class ChangeEmailView(View):
 #GAME PATHS
 #===================================================================================================================
 
-
 class GamesView(View):
     def get(self, request, *args, **kwargs):
         search_query = request.GET.get('q', '').strip()
@@ -355,7 +348,6 @@ class GameDetailView(View):
         game = get_object_or_404(Game, pk=game_id)
         speedrun_types = game.speedrun_types.all()
         return render(request, 'game_detail.html', {'game': game, 'speedrun_types': speedrun_types})
-    
     
 #SPEEDRUN TYPES PATHS
 #===================================================================================================================
@@ -461,7 +453,6 @@ class SpeedrunUploadView(View):
                 'speedrun_type': speedrun_type
             })
 
-
 class DiscoverView(View):
     def get(self, request, *args, **kwargs):
         one_week_ago = timezone.now().date() - timedelta(days=7)
@@ -484,7 +475,6 @@ class DiscoverView(View):
         ).order_by('-recent_run_count').prefetch_related(valid_runs)[:5]
 
         return render(request, 'discover.html', {'top_categories': top_categories})
-
 
 #REQUESTS PATHS
 #===================================================================================================================
@@ -566,7 +556,6 @@ class ReportUserView(View):
             'target_name': target_user.username,
             'report_type': 'User'
         })
-
 
 @method_decorator(login_required(login_url='user-login'), name='dispatch')
 class ReportSpeedrunView(View):
