@@ -18,7 +18,7 @@ def send_verification_email(request, user):
 
     verification_path = reverse('verify-email', kwargs={'uidb64': uid, 'token': token})
 
-    verification_url = f"http://{domain}{verification_path}/"
+    verification_url = f"http://{domain}{verification_path}"
 
     subject = "Verify your Speedrun Tracker Account"
     message = (

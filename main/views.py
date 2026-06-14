@@ -11,7 +11,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count, Q, Prefetch
 from django.views import View
-from .models import User, Game, Speedrun, SpeedrunType
+from .models import User, Game, Speedrun, SpeedrunType, VerificationStatus
 from .forms import Category, SpeedrunForm, GameRequestForm, SpeedrunTypeRequestForm, UserReportForm, SpeedrunReportForm, UserProfileEditForm
 import json
 from django.utils.http import urlsafe_base64_decode
@@ -19,7 +19,6 @@ from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
 from .utils import send_verification_email
-from models import VerificationStatus
 
 
 class HomeView(View):
@@ -64,9 +63,17 @@ class RegisterView(View):
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username is already taken.')
             return render(request, 'user/register.html')
+        
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email is already registered.')
+            return render(request, 'user/register.html')
 
         # Create the User
         user = User.objects.create_user(username=username, email=email, password=password)
+        user.status = VerificationStatus.UNVERIFIED
+        user.save()
+        # Send the verification email
+        send_verification_email(request, user)
         
         messages.success(request, 'Account created successfully! Please log in.')
         return redirect('user-login')
