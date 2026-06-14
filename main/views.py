@@ -188,9 +188,11 @@ class EmailVerificationView(View):
             # Update custom VerificationStatus
             user.status = VerificationStatus.VERIFIED
             user.save()
-            return HttpResponse("Email verified successfully! You can now log in.")
+            messages.success(request, 'Your email has been verified! You can now log in.')
+            return render(request, 'user/login.html')
         else:
-            return HttpResponse("This verification link is invalid or has expired.", status=400)
+            messages.error(request, 'Invalid or expired verification link. Please request a new one.')
+            return render(request, 'email_resend.html')
         
 class ResendVerificationEmailView(View):
     @method_decorator(login_required(login_url='user-login'))
@@ -199,22 +201,22 @@ class ResendVerificationEmailView(View):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return HttpResponse("If that email is registered and unverified, a new link has been sent.")
+            return render(request, 'email_resend.html', {'error': 'If that email is registered and unverified, a new link has been sent.'})
             
         # Check if already verified
         if user.status == VerificationStatus.VERIFIED:
-            return HttpResponse("This account is already verified.", status=400)
+            return render(request, 'email_resend.html', {'error': 'This account is already verified.'})
             
         # Check the Cooldown Cache
         cache_key = f"email_cooldown_{user.pk}"
         if cache.get(cache_key):
-            return HttpResponse("Please wait 2 minutes before requesting another email.", status=429)
+            return HttpResponse("Please wait 15 minutes before requesting another email.", status=429)
             
         # Send the email
         send_verification_email(request, user)
         
         # Set the cooldown timer
-        cache.set(cache_key, True, timeout=120)
+        cache.set(cache_key, True, timeout=900)
         
         return HttpResponse("If that email is registered and unverified, a new link has been sent.")
     
