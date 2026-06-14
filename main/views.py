@@ -106,6 +106,10 @@ class UserProfileView(View):
     def get(self, request, username, *args, **kwargs):
         profile_user = get_object_or_404(User, username=username)
 
+        if profile_user.status != VerificationStatus.VERIFIED:
+            messages.error(request, 'No valid user with that username found')
+            return redirect('home')
+
         user_runs = Speedrun.objects.filter(user=profile_user, status='ACCEPTED').select_related('speedrun_type', 'speedrun_type__game')
         
         context = {
@@ -342,30 +346,32 @@ class ChangeEmailView(View):
         else:
             messages.error(request, "This verification link is invalid or has expired.")
             return redirect('home')
-#GAME PATHS
-#===================================================================================================================
+
+# GAME PATHS
+# ===================================================================================================================
+
 
 class GamesView(View):
     def get(self, request, *args, **kwargs):
         search_query = request.GET.get('q', '').strip()
-        
+
         if search_query:
             games = Game.objects.filter(name__icontains=search_query)
             grouped_games = None
         else:
             games = None
             categories = Category.objects.prefetch_related('game_set').all()
-            
+
             grouped_games = {}
             for category in categories:
                 category_games = category.game_set.all()
-                
+
                 if category_games.exists():
                     grouped_games[category.name] = category_games
-            
+
         return render(request, 'games.html', {
-            'games': games, 
-            'grouped_games': grouped_games, 
+            'games': games,
+            'grouped_games': grouped_games,
             'search_term': search_query
         })
 
@@ -385,7 +391,8 @@ class CategoryLeaderboardView(View):
         
         speedruns = Speedrun.objects.filter(
             speedrun_type=category, 
-            status='ACCEPTED'
+            status='ACCEPTED',
+            user__status=VerificationStatus.VERIFIED
         ).order_by('time')
         
         history_runs = speedruns.order_by('date')
@@ -427,12 +434,19 @@ class SpeedrunDetailView(View):
     def get(self, request, game_id, type_id, speedrun_id, *args, **kwargs):
         game = get_object_or_404(Game, pk=game_id)
         category = get_object_or_404(SpeedrunType, pk=type_id, game=game)
-        speedrun = get_object_or_404(Speedrun, pk=speedrun_id, speedrun_type=category)
+        
+        speedrun = get_object_or_404(
+            Speedrun, 
+            pk=speedrun_id, 
+            speedrun_type=category,
+            user__status=VerificationStatus.VERIFIED
+        )
         
         rank = Speedrun.objects.filter(
             speedrun_type=category, 
-            status='ACCEPTED', 
-            time__lt=speedrun.time
+            status='ACCEPTED',
+            user__status=VerificationStatus.VERIFIED,
+            time__lt=speedrun.time,
         ).count() + 1
         
         return render(request, 'speedrun_detail.html', {
@@ -498,12 +512,18 @@ class DiscoverView(View):
         one_week_ago = timezone.now().date() - timedelta(days=7)
         
         # Filter runs from the last 7 days
-        recent_accepted_runs = Q(speedruns__status='ACCEPTED', speedruns__date__gte=one_week_ago)
+        recent_accepted_runs = Q(
+            speedruns__status='ACCEPTED',
+            speedruns__date__gte=one_week_ago,
+            speedruns__user__status=VerificationStatus.VERIFIED)
         
         # Get the valid runs
         valid_runs = Prefetch(
             'speedruns',
-            queryset=Speedrun.objects.filter(status='ACCEPTED').select_related('user').order_by('time'),
+            queryset=Speedrun.objects.filter(
+                status='ACCEPTED',
+                user__status=VerificationStatus.VERIFIED 
+            ).select_related('user').order_by('time'),
             to_attr='top_runs'
         )
 
