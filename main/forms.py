@@ -185,13 +185,18 @@ class SpeedrunReportForm(forms.ModelForm):
             }),
         }
 
+
 class UserProfileEditForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'profile_picture']
         widgets = {
             'username': forms.TextInput(attrs={
-                'class': 'w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 transition shadow-inner'
+                'class': 'w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 transition shadow-inner',
+                'minlength': '3',
+                'maxlength': '20',
+                'pattern': '^[a-zA-Z0-9_]+$',
+                'title': '3-20 characters, letters, numbers, and underscores only.'
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 transition shadow-inner'
@@ -200,6 +205,17 @@ class UserProfileEditForm(forms.ModelForm):
                 'class': 'w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 file:cursor-pointer transition'
             }),
         }
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        
+        if not (3 <= len(username) <= 20) or not re.match(r"^[a-zA-Z0-9_]+$", username):
+            raise forms.ValidationError('Username must be 3-20 characters long and contain only letters, numbers, and underscores.')
+        
+        if User.objects.filter(username__iexact=username).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('This username is already taken.')
+            
+        return username
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
