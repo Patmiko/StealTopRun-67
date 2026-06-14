@@ -73,3 +73,29 @@ def send_change_email(request, user, new_email):
         html_message=html_message,
         fail_silently=False,
     )
+
+def send_security_alert_email(request, user, old_email, new_email):
+    """
+    Sends a security alert to the user's original email address notifying them
+    that an email change has been requested.
+    """
+    domain = request.get_host()
+
+    subject = "Security Alert: Email change requested on StealTopRun"
+    
+    context = {
+        'username': user.username,
+        'new_email': new_email,
+    }
+    
+    html_message = render_to_string('emails/security_alert_email.html', context)
+    plain_message = strip_tags(html_message)
+
+    send_mail(
+        subject=subject,
+        message=plain_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[old_email], 
+        html_message=html_message,
+        fail_silently=False,
+    )

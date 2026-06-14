@@ -20,7 +20,7 @@ from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
 from django.core import signing
-from .utils import send_verification_email, send_change_email
+from .utils import send_verification_email, send_change_email, send_security_alert_email
 
 
 class HomeView(View):
@@ -157,12 +157,12 @@ class EditUserProfileView(View):
                     
                     if new_email != original_email:
                         messages.info(request, 'A verification link has been sent to your new email. Please verify to complete the change.')
-                        request.session['pending_email'] = new_email
 
                         user_instance.email = original_email
                         profile_user.email = original_email
                         send_change_email(request, profile_user, new_email)
-
+                        send_security_alert_email(request, profile_user, original_email, new_email)
+                        request.session['pending_email'] = new_email
                     else:
                         user_instance.email = original_email
 

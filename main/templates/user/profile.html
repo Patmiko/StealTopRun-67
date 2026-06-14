@@ -8,17 +8,19 @@
         <h1 class="text-4xl font-extrabold text-white">My Profile</h1>
         <p class="text-gray-400 mt-1">Check your current speedruns or modify your account informations.</p>
     </div>
-    {% if pending_email %}
-    <div class="mt-2 p-3 bg-yellow-900/40 border border-yellow-700 rounded-md flex items-center gap-3 text-sm text-yellow-200">
-        <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-        </svg>
-        <div>
-            <p class="font-semibold">Pending Verification</p>
-            <p class="opacity-80">We sent a link to <span class="text-white font-medium">{{ pending_email }}</span>. Click it to complete your change.</p>
+    {% if user == profile_user %}
+        {% if request.session.pending_email %}
+        <div class="mt-2 p-3 bg-yellow-900/40 border border-yellow-700 rounded-md flex items-center gap-3 text-sm text-yellow-200">
+            <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <div>
+                <p class="font-semibold">Pending Verification</p>
+                <p class="opacity-80">We sent a link to <span class="text-white font-medium">{{ request.session.pending_email }}</span>. Click it to complete your change.</p>
+            </div>
         </div>
-    </div>
-{% endif %}
+        {% endif %}
+     {% endif %}
     <div class="bg-gray-800 border border-gray-700 rounded-2xl p-8 shadow-lg flex flex-col md:flex-row items-center gap-6">
         
         <div class="flex-shrink-0">
