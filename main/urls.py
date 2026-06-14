@@ -23,7 +23,8 @@ urlpatterns = [
     # Speedruns
     path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/<int:speedrun_id>/', views.SpeedrunDetailView.as_view(), name='speedrun-view'),
     path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/', views.SpeedrunUploadView.as_view(), name='speedrun-upload'),
-    
+    path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/<int:speedrun_id>/delete/', 
+         views.SpeedrunDeleteView.as_view(), name='speedrun-delete'),
     # Requests
     path('requests/submit/', views.RequestSubmissionView.as_view(), name='request-submit'),
 

@@ -289,6 +289,20 @@ class SpeedrunUploadView(View):
                 'game': game,
                 'speedrun_type': speedrun_type
             })
+        
+class SpeedrunDeleteView(View):
+    @method_decorator(login_required(login_url='user-login'))
+    def post(self, request, game_id, type_id, speedrun_id, *args, **kwargs):
+        speedrun = get_object_or_404(Speedrun, pk=speedrun_id, speedrun_type__id=type_id)
+        
+        # Security check: ensure only the owner can delete
+        if request.user == speedrun.user:
+            speedrun.delete()
+            messages.success(request, 'Speedrun deleted successfully.')
+        else:
+            messages.error(request, 'You do not have permission to delete this run.')
+            
+        return redirect('category-leaderboard', game_id=game_id, type_id=type_id)
 
 
 class DiscoverView(View):
