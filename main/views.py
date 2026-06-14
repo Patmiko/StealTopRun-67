@@ -39,6 +39,9 @@ class LoginView(View):
 
         user = authenticate(request, username=username, password=password)
 
+        if user is not None and user.status != VerificationStatus.VERIFIED:
+            messages.error(request, 'Your email is not verified. Please check your inbox for the verification link.')
+            return render(request, 'email_resend.html')
         if user is not None:
             login(request, user)
             return redirect('home')
