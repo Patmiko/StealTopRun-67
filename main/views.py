@@ -240,7 +240,7 @@ class verificationPendingView(View):
             cache_key = f"email_cooldown_{user.pk}"
             if cache.get(cache_key):
                 messages.error(request, "Please wait 15 minutes before requesting another email.")
-                return render(request, 'accounts/verification_pending.html', {'form': form})
+                return render(request, 'email_resend.html', {'form': form})
 
             # Send email and trigger cooldown
             send_verification_email(request, user)
@@ -248,13 +248,14 @@ class verificationPendingView(View):
             
             messages.success(request, "A new verification link has been sent to your email.")
             return redirect('verification-pending')
+        return render(request, 'email_resend.html', {'form': form})
     def get(self, request, *args, **kwargs):
         initial_data = {}
         if request.user.is_authenticated:
             initial_data['email'] = request.user.email
         form = ResendVerificationForm(initial=initial_data)
 
-        return render(request, 'accounts/verification_pending.html', {'form': form})
+        return render(request, 'email_resend.html', {'form': form})
 #GAME PATHS
 #===================================================================================================================
 
