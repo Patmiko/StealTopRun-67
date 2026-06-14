@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.http import HttpRequest
 from django.db.models import QuerySet
 from django.contrib.admin import ModelAdmin
-from .actions import accept_and_configure_game, accept_and_configure_speedrun_type, reject_request, accept_and_configure_speedrun
+from .actions import accept_and_configure_game, accept_and_configure_speedrun_type, reject_request, accept_and_configure_speedrun, delete_unverified_users
 from .models import User, Status, VerificationStatus, Game, Report, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport, GameRequest, SpeedrunTypeRequest
 
 
@@ -19,6 +19,9 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('id', 'profile_picture', 'status', 'username', 'email', 'password')
     search_fields = ('id', 'username', 'email')
     list_filter = ('status',)
+
+    actions = [delete_unverified_users]
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):

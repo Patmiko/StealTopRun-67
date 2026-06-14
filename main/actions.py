@@ -2,7 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.contrib import admin, messages
 from django.db import transaction
-from .models import Game, GameCategoryAllocation, Status, SpeedrunType, Speedrun
+from django.utils import timezone
+from datetime import timedelta
+from .models import Game, GameCategoryAllocation, Status, SpeedrunType, VerificationStatus
 from .forms import AcceptGameRequestFormSet, AcceptSpeedrunTypeRequestFormSet, AcceptSpeedrunRequestFormSet
 
 
@@ -242,4 +244,20 @@ def accept_and_configure_speedrun(modeladmin, request, queryset):
             'title': 'Configure Speedrun Details',
             'opts': opts
         }
+    )
+
+
+@admin.action(description="Delete unverified users older than one week")
+def delete_unverified_users(modeladmin, request, queryset):
+    one_week_ago = timezone.now() - timedelta(weeks=1)
+    to_delete = queryset.filter(
+        status=VerificationStatus.UNVERIFIED,
+        date_joined__lt=one_week_ago,
+    )
+
+    deleted_count, _ = to_delete.delete()
+    modeladmin.message_user(
+        request,
+        f"Deleted {deleted_count} unverified user(s) older than one week.",
+        messages.SUCCESS,
     )
