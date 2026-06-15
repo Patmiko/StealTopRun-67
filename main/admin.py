@@ -1,10 +1,6 @@
 from django.contrib import admin
-from django.contrib import messages
-from django.http import HttpRequest
-from django.db.models import QuerySet
-from django.contrib.admin import ModelAdmin
 from .actions import accept_and_configure_game, accept_and_configure_speedrun_type, reject_request, accept_and_configure_speedrun, delete_unverified_users, dismiss_reports, resolve_speedrun_report, resolve_user_report
-from .models import User, Status, VerificationStatus, Game, Report, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport, GameRequest, SpeedrunTypeRequest
+from .models import User, Game, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport, GameRequest, SpeedrunTypeRequest
 
 
 

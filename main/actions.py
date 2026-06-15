@@ -4,7 +4,10 @@ from django.contrib import admin, messages
 from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
-from .models import Game, GameCategoryAllocation, Status, SpeedrunType, VerificationStatus
+from django.contrib.admin import ModelAdmin
+from django.db.models import QuerySet
+from django.http import HttpRequest
+from .models import Game, GameCategoryAllocation, Status, SpeedrunType, VerificationStatus, Report, UserReport, SpeedrunReport
 from .forms import AcceptGameRequestFormSet, AcceptSpeedrunTypeRequestFormSet, AcceptSpeedrunRequestFormSet
 
 
