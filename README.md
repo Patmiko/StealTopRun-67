@@ -54,25 +54,59 @@ python manage.py dumpdata main --format=json -o initial_data.json
 ### Class Diagram
 <img src="assets/uml_class_diagram.png" />
 
-## UI Prototype
+## UI Screenshots
 
-### Discover Screen
-<img src="assets/discover_screen.png" />
+### User
 
-### Games Screen
-<img src="assets/games_screen.png" />
+#### Login Page
+<img src="assets/User/login page.png" />
 
-### Speedrun Types Screen
-<img src="assets/speedrun_types_screen.png" />
+#### Create an Account
+<img src="assets/User/create an account.png" />
 
-### Speedruns Screen
-<img src="assets/speedrun_screen.png" />
+#### Registration Email
+<img src="assets/User/registration email.png" />
 
-### Speedrun Screen
-<img src="assets/discover_screen.png" />
+#### Main Page
+<img src="assets/User/main page.png" />
 
-### Profle Screen
-<img src="assets/profile_screen.png" />
+#### Discover Screen
+<img src="assets/User/discover.png" />
 
-### Request Screen
-<img src="assets/request_screen.png" />
+#### Browse Games Screen
+<img src="assets/User/browse games.png" />
+
+#### Game Detail Screen
+<img src="assets/User/game detail.png" />
+
+#### Speedrun Detail Screen
+<img src="assets/User/speedrun detail.png" />
+
+#### Report Speedrun
+<img src="assets/User/report speedrun.png" />
+
+#### Submit a Request Screen
+<img src="assets/User/submit a request.png" />
+
+#### My Profile Screen
+<img src="assets/User/my profile.png" />
+
+#### Edit User Profile
+<img src="assets/User/edit user profile.png" />
+
+#### Search for User
+<img src="assets/User/search for user.png" />
+
+#### Other User Profile
+<img src="assets/User/other user profile.png" />
+
+#### Report User
+<img src="assets/User/report user.png" />
+
+### Admin 
+
+#### Administration Login
+<img src="assets\Admin\admin login.png">
+
+#### Administration Panel
+<img src="assets\Admin\admin page.png">
