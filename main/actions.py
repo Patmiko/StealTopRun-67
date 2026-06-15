@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.contrib import admin, messages
 from django.db import transaction
@@ -7,8 +7,8 @@ from datetime import timedelta
 from django.contrib.admin import ModelAdmin
 from django.db.models import QuerySet
 from django.http import HttpRequest
-from .models import Game, GameCategoryAllocation, Status, SpeedrunType, VerificationStatus, Report, UserReport, SpeedrunReport
-from .forms import AcceptGameRequestFormSet, AcceptSpeedrunTypeRequestFormSet, AcceptSpeedrunRequestFormSet
+from .models import Game, GameCategoryAllocation, Status, SpeedrunType, VerificationStatus, Report, UserReport, SpeedrunReport, Speedrun
+from .forms import AcceptGameRequestFormSet, AcceptSpeedrunTypeRequestFormSet, AcceptSpeedrunRequestFormSet, ResolveSpeedrunReportFormSet
 
 
 
@@ -302,24 +302,63 @@ def resolve_user_report(
     )
 
 
-@admin.action(description='Resolve and Ban User')
-def resolve_speedrun_report(
-    modeladmin: ModelAdmin,
-    request: HttpRequest,
-    queryset: QuerySet[SpeedrunReport]
-):
-    updated_reports = queryset.update(status=Status.ACCEPTED)
+@admin.action(description="See and Resolve Reports")
+def resolve_speedrun_report(modeladmin, request, queryset):
+    if 'apply' in request.POST:
+        formset = ResolveSpeedrunReportFormSet(request.POST)
+        if formset.is_valid():
+            for form in formset:
+                if form.cleaned_data.get('reject'):
+                    # Do nothing, just update status if needed
+                    report = SpeedrunReport.objects.get(pk=form.cleaned_data['request_id'])
+                    report.status = 'REJECTED'
+                    report.save()
 
-    banned_count = 0
-    for report in queryset:
-        speedrun_owner = report.target.user
-        if speedrun_owner.status != VerificationStatus.BANNED:
-            speedrun_owner.status = VerificationStatus.BANNED
-            speedrun_owner.save()
-            banned_count += 1
+                elif form.cleaned_data.get('delete_run'):
+                    # Delete the specific speedrun
+                    speedrun = Speedrun.objects.get(pk=form.instance.target.pk)
+                    speedrun.delete()
+                    
+                    # Update report status
+                    report = SpeedrunReport.objects.get(pk=form.cleaned_data['request_id'])
+                    report.status = 'ACCEPTED'
+                    report.save()
 
-    modeladmin.message_user(
-        request, 
-        f'Resolved {updated_reports} reports. Banned {banned_count} user(s).', 
-        messages.SUCCESS
-    )
+                elif form.cleaned_data.get('ban_user'):
+                    # Ban user and delete their runs
+                    user = form.instance.target.user
+                    user.status = 'BANNED'
+                    user.save()
+                    
+                    # Delete all runs by this user
+                    Speedrun.objects.filter(user=user).delete()
+                    
+                    report = SpeedrunReport.objects.get(pk=form.cleaned_data['request_id'])
+                    report.status = 'ACCEPTED'
+                    report.save()
+            
+            messages.success(request, "Reports processed successfully.")
+            return redirect('admin:app_list', app_label='your_app_name') # Change to your app name
+
+    else:
+        # Initial GET request: prepare the formset
+        initial_data = [
+            {
+                'request_id': report.pk,
+                'reject': False,
+                'ban_user': False,
+                'delete_run': False
+            } for report in queryset
+        ]
+        formset = ResolveSpeedrunReportFormSet(initial=initial_data)
+        
+        # Attach the report objects to the form instances so the template can find the speedrun
+        for i, form in enumerate(formset):
+            form.instance = queryset[i]
+
+    return render(request, 'admin/resolve_speedrun_report.html', {
+        'formset': formset,
+        'title': 'Resolve Speedrun Reports'
+    })
+
+resolve_speedrun_report.short_description = "Resolve selected reports"
