@@ -53,12 +53,11 @@
                                 {% if request.resolver_match.kwargs.username == user.username and request.resolver_match.url_name in 'user-profile edit-profile' %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
                                 My Profile
                             </a>
-
                         </div>
                     {% endif %}
                 </div>
 
-                <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-4">
                     {% if user.is_authenticated %}
                         <span class="text-sm font-medium text-purple-300">
                             @{{ user.username }}
@@ -74,7 +73,63 @@
                         <a href="{% url 'user-register' %}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition">Register</a>
                     {% endif %}
                 </div>
+
+                <div class="flex md:hidden">
+                    <button id="mobile-menu-button" type="button" class="text-gray-400 hover:text-white focus:outline-none p-2 rounded-md inline-flex items-center justify-center">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path id="hamburger-icon" class="block" stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                            <path id="close-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-gray-800 border-t border-gray-700 px-2 pt-2 pb-4 space-y-1">
+            {% if user.is_authenticated %}
+                <a href="{% url 'game-list' %}" 
+                    class="block px-3 py-2 rounded-md text-base font-medium transition
+                    {% if '/games' in request.path %} bg-gray-900 text-purple-400 {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}">
+                    Games
+                </a>
+                
+                <a href="{% url 'request-submit' %}" 
+                    class="block px-3 py-2 rounded-md text-base font-medium transition
+                    {% if request.resolver_match.url_name == 'request-submit' %} bg-gray-900 text-purple-400 {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}">
+                    Request
+                </a>
+                
+                <a href="{% url 'discover' %}" 
+                    class="block px-3 py-2 rounded-md text-base font-medium transition
+                    {% if request.resolver_match.url_name == 'discover' %} bg-gray-900 text-purple-400 {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}">
+                    Discover
+                </a>
+
+                <a href="{% url 'user-search' %}" 
+                    class="block px-3 py-2 rounded-md text-base font-medium transition
+                    {% if request.resolver_match.url_name == 'user-search' %} bg-gray-900 text-purple-400 {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}">
+                    Search User
+                </a>
+
+                <a href="{% url 'user-profile' username=user.username %}" 
+                    class="block px-3 py-2 rounded-md text-base font-medium transition
+                    {% if request.resolver_match.kwargs.username == user.username and request.resolver_match.url_name in 'user-profile edit-profile' %} bg-gray-900 text-purple-400 {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}">
+                    My Profile
+                </a>
+
+                <div class="border-t border-gray-700 mt-4 pt-4 px-3 flex items-center justify-between">
+                    <span class="text-sm font-medium text-purple-300">@{{ user.username }}</span>
+                    <form action="{% url 'user-logout' %}" method="POST" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-medium transition w-full text-center">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <a href="{% url 'user-login' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition">Login</a>
+                <a href="{% url 'user-register' %}" class="block px-3 py-2 rounded-md text-base font-medium bg-purple-600 text-white hover:bg-purple-700 transition text-center mt-2">Register</a>
+            {% endif %}
         </div>
     </nav>
 
@@ -102,6 +157,19 @@
             &copy; {% now "Y" %} StealTopRun. Built for speedrunners.
         </div>
     </footer>
+
+    <script>
+        const btn = document.getElementById('mobile-menu-button');
+        const menu = document.getElementById('mobile-menu');
+        const hamburgerIcon = document.getElementById('hamburger-icon');
+        const closeIcon = document.getElementById('close-icon');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+            hamburgerIcon.classList.toggle('hidden');
+            closeIcon.classList.toggle('hidden');
+        });
+    </script>
 
 </body>
 </html>
