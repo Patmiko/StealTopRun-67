@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from main.models import Game, Speedrun, Status
-from .serializers import PublicGameSerializer, PublicSpeedrunSerializer
+from main.models import Game, Speedrun, Status, Category
+from .serializers import PublicGameSerializer, PublicSpeedrunSerializer, PublicCategorySerializer
 
 
 class PublicGameViewSet(viewsets.ReadOnlyModelViewSet):
@@ -33,3 +33,11 @@ class PublicSpeedrunViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(speedrun_type_id=category_id)
 
         return queryset
+
+
+class PublicCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Public endpoint to view all speedrun categories.
+    """
+    queryset = Category.objects.all()
+    serializer_class = PublicCategorySerializer

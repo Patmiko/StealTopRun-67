@@ -100,10 +100,19 @@ Explicit routing overrides for error presentation.
 
 These endpoints are powered by Django REST Framework `ReadOnlyModelViewSet` classes, providing public, read-only (GET) access to the core database models.
 
+---
+
+## 1. Categories API
+Public endpoints to view the distinct speedrun categories/types available.
+
+| Method | URL Path | ViewSet | Description |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/categories/` | `PublicCategoryViewSet` | **List View:** Returns a  list of all categories. |
+| **GET** | `/api/categories/<int:id>/` | `PublicCategoryViewSet` | **Detail View:** Returns the details of a specific category using its ID. |
 
 ---
 
-## 1. Games API
+## 2. Games API
 Public endpoints to view the catalog of registered games and their associated categories.
 
 | Method | URL Path | ViewSet | Description |
@@ -111,12 +120,20 @@ Public endpoints to view the catalog of registered games and their associated ca
 | **GET** | `/api/games/` | `PublicGameViewSet` | **List View:** Returns a list of all registered games in the system. |
 | **GET** | `/api/games/<int:id>/` | `PublicGameViewSet` | **Detail View:** Returns the complete details of a specific game using its ID. |
 
+**Supported Query Parameters:**
+* `?category=<id>`: Filter the returned games to only include those associated with a specific category ID. *(Example: `/api/games/?category=1`)*
+
 ---
 
-## 2. Speedruns API
+## 3. Speedruns API
 Public endpoints to explore verified speedrun submissions. 
 
 | Method | URL Path | ViewSet | Description |
 | :--- | :--- | :--- | :--- |
 | **GET** | `/api/speedruns/` | `PublicSpeedrunViewSet` | **List View:** Returns a feed of all accepted speedrun submissions. |
 | **GET** | `/api/speedruns/<int:id>/` | `PublicSpeedrunViewSet` | **Detail View:** Returns the complete details of a specific accepted speedrun using its ID. |
+
+**Supported Query Parameters:**
+* `?game=<id>`: Filter the returned speedruns to only show runs for a specific game ID. *(Example: `/api/speedruns/?game=5`)*
+* `?category=<id>`: Filter the returned speedruns to only show runs for a specific speedrun type/category ID. *(Example: `/api/speedruns/?category=2`)*
+* *Note: You can combine these parameters to be highly specific.* *(Example: `/api/speedruns/?game=5&category=2`)*
