@@ -4,8 +4,16 @@ from .serializers import PublicGameSerializer, PublicSpeedrunSerializer
 
 
 class PublicGameViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Game.objects.prefetch_related('categories').all()
     serializer_class = PublicGameSerializer
+
+    def get_queryset(self):
+        queryset = Game.objects.prefetch_related('categories').all()
+
+        category_id = self.request.query_params.get('category')
+        if category_id:
+            queryset = queryset.filter(categories__id=category_id).distinct()
+
+        return queryset
 
 
 class PublicSpeedrunViewSet(viewsets.ReadOnlyModelViewSet):
