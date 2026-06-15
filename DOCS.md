@@ -98,7 +98,7 @@ Explicit routing overrides for error presentation.
 
 # Public API Endpoints (REST)
 
-These endpoints are powered by Django REST Framework `ReadOnlyModelViewSet` classes, providing public, read-only (GET) access to the core database models.
+These endpoints are powered by Django REST Framework, providing public, read-only (GET) access to the database models.
 
 ---
 
@@ -136,4 +136,3 @@ Public endpoints to explore verified speedrun submissions.
 **Supported Query Parameters:**
 * `?game=<id>`: Filter the returned speedruns to only show runs for a specific game ID. *(Example: `/api/speedruns/?game=5`)*
 * `?category=<id>`: Filter the returned speedruns to only show runs for a specific speedrun type/category ID. *(Example: `/api/speedruns/?category=2`)*
-* *Note: You can combine these parameters to be highly specific.* *(Example: `/api/speedruns/?game=5&category=2`)*
