@@ -306,59 +306,57 @@ def resolve_user_report(
 def resolve_speedrun_report(modeladmin, request, queryset):
     if 'apply' in request.POST:
         formset = ResolveSpeedrunReportFormSet(request.POST)
+        
+        # 2. Check if valid
         if formset.is_valid():
-            for form in formset:
-                if form.cleaned_data.get('reject'):
-                    # Do nothing, just update status if needed
-                    report = SpeedrunReport.objects.get(pk=form.cleaned_data['request_id'])
-                    report.status = 'REJECTED'
-                    report.save()
-
-                elif form.cleaned_data.get('delete_run'):
-                    # Delete the specific speedrun
-                    speedrun = Speedrun.objects.get(pk=form.instance.target.pk)
-                    speedrun.delete()
+            with transaction.atomic():
+                for form in formset:
+                    # Get ID from hidden field
+                    report_id = form.cleaned_data.get('request_id')
+                    if not report_id:
+                        continue
                     
-                    # Update report status
-                    report = SpeedrunReport.objects.get(pk=form.cleaned_data['request_id'])
-                    report.status = 'ACCEPTED'
-                    report.save()
-
-                elif form.cleaned_data.get('ban_user'):
-                    # Ban user and delete their runs
-                    user = form.instance.target.user
-                    user.status = 'BANNED'
-                    user.save()
+                    # Logic
+                    reject = form.cleaned_data.get('reject')
+                    delete_run = form.cleaned_data.get('delete_run')
+                    ban_user = form.cleaned_data.get('ban_user')
                     
-                    # Delete all runs by this user
-                    Speedrun.objects.filter(user=user).delete()
+                    if not any([reject, delete_run, ban_user]):
+                        continue
                     
-                    report = SpeedrunReport.objects.get(pk=form.cleaned_data['request_id'])
-                    report.status = 'ACCEPTED'
+                    report = SpeedrunReport.objects.get(pk=report_id)
+                    
+                    if reject:
+                        report.status = Status.REJECTED
+                    elif delete_run:
+                        if report.target:
+                            report.target.delete()
+                        report.status = Status.ACCEPTED
+                    elif ban_user:
+                        if report.target and report.target.user:
+                            user = report.target.user
+                            user.status = VerificationStatus.BANNED
+                            user.save()
+                            Speedrun.objects.filter(user=user).delete()
+                        report.status = Status.ACCEPTED
+                    
                     report.save()
             
             messages.success(request, "Reports processed successfully.")
-            return redirect('admin:app_list', app_label='your_app_name') # Change to your app name
-
+            return redirect(request.get_full_path())
+        else:
+            # If not valid, show errors in the admin
+            modeladmin.message_user(request, f"Form Errors: {formset.errors}", level='ERROR')
     else:
-        # Initial GET request: prepare the formset
-        initial_data = [
-            {
-                'request_id': report.pk,
-                'reject': False,
-                'ban_user': False,
-                'delete_run': False
-            } for report in queryset
-        ]
+        # GET request logic
+        initial_data = [{'request_id': r.pk} for r in queryset]
         formset = ResolveSpeedrunReportFormSet(initial=initial_data)
         
-        # Attach the report objects to the form instances so the template can find the speedrun
-        for i, form in enumerate(formset):
-            form.instance = queryset[i]
+        # Bind the instances for the template
+        for form, instance in zip(formset.forms, queryset):
+            form.instance = instance
 
     return render(request, 'admin/resolve_speedrun_report.html', {
         'formset': formset,
         'title': 'Resolve Speedrun Reports'
     })
-
-resolve_speedrun_report.short_description = "Resolve selected reports"
