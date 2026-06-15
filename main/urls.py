@@ -9,6 +9,8 @@ import main.views.verification as verification_views
 urlpatterns = [
     # Core
     path('', core_views.HomeView.as_view(), name='home'),
+    path('contact/', core_views.ContactView.as_view(), name='contact'),
+
 
     # User Auth & Profiles
     path('user/login', auth_views.LoginView.as_view(), name='user-login'),

@@ -7,6 +7,7 @@ These are the main landing pages and discovery hubs of the application.
 | :--- | :--- | :--- | :--- |
 | `/` | `home` | `HomeView` | The main landing page/dashboard of the application. |
 | `/discover/` | `discover` | `DiscoverView` | A feed or hub for exploring new content, featured speedruns, or games. |
+| `/contact/` | `contact` | `ContactView` | Contact page for sharing contact info of the project and it's authors with the potential viewers. |
 
 ---
 
