@@ -224,12 +224,6 @@ class DeleteUserView(LoginRequiredMixin, View):
     login_url = 'user-login'
 
     def post(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            messages.error(request, 'You must be logged in to delete your account.')
-            return redirect('user-login')
-        if request.user != get_object_or_404(User, username=request.user.username):
-            messages.error(request, "You cannot delete someone else's account.")
-            return redirect('user-profile', username=request.user.username)
         user = request.user
         logout(request)
         user.delete()
