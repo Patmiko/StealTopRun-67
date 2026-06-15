@@ -39,7 +39,7 @@ def send_verification_email(request, user):
         fail_silently=False,
     )
 
-def send_change_email(request, user, new_email):
+def send_change_email(request, user, old_email, new_email):
     """
     Generates a token, securely signs the new email string, 
     and sends a HTML verification email directly to the new address.
@@ -69,7 +69,7 @@ def send_change_email(request, user, new_email):
         subject=subject,
         message=plain_message,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[new_email],
+        recipient_list=[old_email],
         html_message=html_message,
         fail_silently=False,
     )

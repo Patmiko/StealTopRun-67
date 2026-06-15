@@ -170,7 +170,7 @@ class EditUserProfileView(View):
                         user_instance.email = original_email
                         profile_user.email = original_email
                         try:
-                            send_change_email(request, profile_user, original_email)
+                            send_change_email(request, profile_user, original_email, new_email)
                             send_security_alert_email(request, profile_user, new_email)
                             request.session['pending_email'] = original_email
                             messages.info(request, 'A verification link has been sent to your new email. Please verify to complete the change.')
