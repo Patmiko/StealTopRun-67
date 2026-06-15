@@ -74,7 +74,7 @@ def send_change_email(request, user, new_email):
         fail_silently=False,
     )
 
-def send_security_alert_email(request, user, old_email, new_email):
+def send_security_alert_email(request, user, new_email):
     """
     Sends a security alert to the user's original email address notifying them
     that an email change has been requested.
@@ -95,7 +95,7 @@ def send_security_alert_email(request, user, old_email, new_email):
         subject=subject,
         message=plain_message,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[old_email], 
+        recipient_list=[new_email], 
         html_message=html_message,
         fail_silently=False,
     )
