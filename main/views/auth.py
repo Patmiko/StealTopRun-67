@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
+import sys
+from io import BytesIO
+from PIL import Image
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.contrib import messages
 from django.views import View
 from ..models import User, Speedrun, VerificationStatus
@@ -139,11 +141,44 @@ class EditUserProfileView(LoginRequiredMixin, View):
             profile_form = UserProfileEditForm(request.POST, request.FILES, instance=profile_user)
             if profile_form.is_valid():
                 user_instance = profile_form.save(commit=False)
+                has_errors = False
+
+                # Image processing
+                uploaded_image = request.FILES.get('profile_picture') # Change field name if needed
+
+                if uploaded_image:
+                    try:
+                        # Open the image using Pillow
+                        img = Image.open(uploaded_image)
+
+                        if img.format != 'PNG':
+                            # Convert to RGBA
+                            if img.mode != 'RGBA':
+                                img = img.convert('RGBA')
+
+                            output = BytesIO()
+                            img.save(output, format='PNG')
+                            output.seek(0)
+
+                            # Create a new filename for the PNG image
+                            new_filename = f"{user_instance.username}_profile.png"
+
+                            # Replace the user's uploaded file with processed PNG image
+                            user_instance.profile_picture = InMemoryUploadedFile(
+                                output,
+                                'ImageField',
+                                new_filename,
+                                'image/png',
+                                sys.getsizeof(output),
+                                None
+                            )
+                    except Exception:
+                        profile_form.add_error('profile_picture', 'The uploaded file is not a valid image.')
+                        has_errors = True
 
                 new_username = profile_form.cleaned_data.get('username')
                 new_email = profile_form.cleaned_data.get('email')
 
-                has_errors = False
                 if User.objects.filter(username=new_username).exclude(pk=profile_user.pk).exists():
                     profile_form.add_error('username', 'This username is already taken.')
                     has_errors = True
