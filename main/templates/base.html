@@ -42,6 +42,12 @@
                                 Discover
                             </a>
 
+                            <a href="{% url 'contact' %}" 
+                                class="px-3 py-2 rounded-md text-sm font-medium transition
+                                {% if request.resolver_match.url_name == 'contact' %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
+                                Contact
+                            </a>
+
                             <a href="{% url 'user-search' %}" 
                                 class="px-3 py-2 rounded-md text-sm font-medium transition
                                 {% if request.resolver_match.url_name == 'user-search' %} text-purple-400 {% else %} text-gray-300 hover:text-white {% endif %}">
