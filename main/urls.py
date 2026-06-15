@@ -1,10 +1,10 @@
 from django.urls import path
-import main.view.auth as auth_views
-import main.view.games as games_views
-import main.view.speedruns as speedrun_views
-import main.view.interactions as interactions_views
-import main.view.core as core_views
-import main.view.verification as verification_views
+import main.views.auth as auth_views
+import main.views.games as games_views
+import main.views.speedruns as speedrun_views
+import main.views.interactions as interactions_views
+import main.views.core as core_views
+import main.views.verification as verification_views
 
 urlpatterns = [
     # Core
