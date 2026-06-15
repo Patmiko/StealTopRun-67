@@ -9,6 +9,8 @@ import main.views.verification as verification_views
 urlpatterns = [
     # Core
     path('', core_views.HomeView.as_view(), name='home'),
+    path('contact/', core_views.ContactView.as_view(), name='contact'),
+
 
     # User Auth & Profiles
     path('user/login', auth_views.LoginView.as_view(), name='user-login'),
@@ -32,7 +34,6 @@ urlpatterns = [
     path('games/', games_views.GamesView.as_view(), name='game-list'),
     path('games/<int:game_id>/', games_views.GameDetailView.as_view(), name='game-detail'),
     path('discover/', games_views.DiscoverView.as_view(), name='discover'),
-    path('contact/', core_views.ContactView.as_view(), name='contact'),
 
     # Speedruns
     path('games/<int:game_id>/speedrun-types/<int:type_id>/', speedrun_views.CategoryLeaderboardView.as_view(), name='category-leaderboard'),
