@@ -455,7 +455,7 @@ class CategoryLeaderboardView(View):
                 chart_data.append({
                     'date': run.date.strftime('%Y-%m-%d'),
                     'time': best_time,
-                    'formatted': format_seconds(best_time) # Add this
+                    'formatted': format_seconds(best_time)
                 })
 
         if chart_data:
