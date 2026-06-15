@@ -261,3 +261,62 @@ def delete_unverified_users(modeladmin, request, queryset):
         f"Deleted {deleted_count} unverified user(s) older than one week.",
         messages.SUCCESS,
     )
+
+
+@admin.action(description="Dismiss reports")
+def dismiss_reports(
+    modeladmin: ModelAdmin,
+    request: HttpRequest,
+    queryset: QuerySet[Report]
+):
+    updated = queryset.update(status=Status.REJECTED)
+    modeladmin.message_user(
+        request, 
+        f'Successfully dismissed {updated} reports.', 
+        messages.SUCCESS
+    )
+
+
+@admin.action(description='Resolve and Ban User')
+def resolve_user_report(
+    modeladmin: ModelAdmin,
+    request: HttpRequest,
+    queryset: QuerySet[UserReport]
+):
+    updated_reports = queryset.update(status=Status.ACCEPTED)
+
+    banned_count = 0
+    for report in queryset:
+        if report.target.status != VerificationStatus.BANNED:
+            report.target.status = VerificationStatus.BANNED
+            report.target.save()
+            banned_count += 1
+            
+    modeladmin.message_user(
+        request, 
+        f'Resolved {updated_reports} reports. Banned {banned_count} user(s).', 
+        messages.SUCCESS
+    )
+
+
+@admin.action(description='Resolve and Ban User')
+def resolve_speedrun_report(
+    modeladmin: ModelAdmin,
+    request: HttpRequest,
+    queryset: QuerySet[SpeedrunReport]
+):
+    updated_reports = queryset.update(status=Status.ACCEPTED)
+
+    banned_count = 0
+    for report in queryset:
+        speedrun_owner = report.target.user
+        if speedrun_owner.status != VerificationStatus.BANNED:
+            speedrun_owner.status = VerificationStatus.BANNED
+            speedrun_owner.save()
+            banned_count += 1
+
+    modeladmin.message_user(
+        request, 
+        f'Resolved {updated_reports} reports. Banned {banned_count} user(s).', 
+        messages.SUCCESS
+    )
