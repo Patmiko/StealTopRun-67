@@ -305,7 +305,7 @@ def resolve_user_report(
 @admin.action(description="See and Resolve Reports")
 def resolve_speedrun_report(modeladmin, request, queryset):
     if 'apply' in request.POST:
-        formset = ResolveSpeedrunReportFormSet(request.POST)
+        formset = ResolveSpeedrunReportFormSet(request.POST, prefix='form')
         
         # 2. Check if valid
         if formset.is_valid():
@@ -328,19 +328,18 @@ def resolve_speedrun_report(modeladmin, request, queryset):
                     
                     if reject:
                         report.status = Status.REJECTED
+                        report.save()
                     elif delete_run:
                         if report.target:
                             report.target.delete()
-                        report.status = Status.ACCEPTED
+                        report.delete()  # <--- Delete the report itself instead of setting target=None
                     elif ban_user:
                         if report.target and report.target.user:
                             user = report.target.user
                             user.status = VerificationStatus.BANNED
                             user.save()
                             Speedrun.objects.filter(user=user).delete()
-                        report.status = Status.ACCEPTED
-                    
-                    report.save()
+                        report.delete()
             
             messages.success(request, "Reports processed successfully.")
             return redirect(request.get_full_path())
@@ -358,5 +357,6 @@ def resolve_speedrun_report(modeladmin, request, queryset):
 
     return render(request, 'admin/resolve_speedrun_report.html', {
         'formset': formset,
+        'queryset': queryset,
         'title': 'Resolve Speedrun Reports'
     })
