@@ -4,8 +4,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    # Admin Site
     path('admin/', admin.site.urls),
+    # Main App
     path('', include('main.urls')),
+    # API Endpoints (Read ONLY)
     path('api/', include('api.urls')),
 ]
 

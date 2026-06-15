@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
@@ -693,13 +693,11 @@ class ReportSpeedrunView(View):
             'target_name': f"{target_run.speedrun_type.game.name} - {target_run.time}s",
             'report_type': 'Speedrun'
         })
-    
+
 # ERROR HANDLING PATHS
-#===================================================================================================================
+# ===================================================================================================================
+
+
 class PageNotFoundView(View):
     def get(self, request, *args, **kwargs):
         return render(request, '404.html', status=404)
-    
-
-    
-    
