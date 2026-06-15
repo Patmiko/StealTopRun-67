@@ -5,6 +5,49 @@ from .models import Category, Game, GameRequest, SpeedrunTypeRequest, UserReport
 import re
 
 
+
+class ResolveUserReportForm(forms.Form):
+    request_id = forms.IntegerField(widget=forms.HiddenInput())
+    
+    reject = forms.BooleanField(required=False, label="Dismiss Report")
+    ban_user = forms.BooleanField(required=False, label="Ban User and Delete Run")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        reject = cleaned_data.get('reject')
+        ban = cleaned_data.get('ban_user')
+
+        selected_count = sum([bool(reject), bool(ban)])
+        
+        if selected_count > 1:
+            raise forms.ValidationError("Please select only one action (Dismiss or Ban User).")
+            
+        return cleaned_data
+
+ResolveUserReportFormSet = formset_factory(ResolveUserReportForm, extra=0)
+
+class ResolveSpeedrunReportForm(forms.Form):
+    request_id = forms.IntegerField(widget=forms.HiddenInput())
+    
+    reject = forms.BooleanField(required=False, label="Dismiss Report")
+    ban_user = forms.BooleanField(required=False, label="Ban User and Delete Run")
+    delete_run = forms.BooleanField(required=False, label="Delete Run Only")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        reject = cleaned_data.get('reject')
+        ban = cleaned_data.get('ban_user')
+        delete = cleaned_data.get('delete_run')
+
+        selected_count = sum([bool(reject), bool(ban), bool(delete)])
+        
+        if selected_count > 1:
+            raise forms.ValidationError("Please select only one action (Dismiss, Ban User, or Delete Run).")
+            
+        return cleaned_data
+
+ResolveSpeedrunReportFormSet = formset_factory(ResolveSpeedrunReportForm, extra=0)
+
 class AcceptGameRequestForm(forms.Form):
     request_id = forms.IntegerField(widget=forms.HiddenInput())
     

@@ -1,0 +1,113 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    {{ formset.media }}
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+    <style>
+        .container-wrapper { max-width: 1200px; margin-top: 25px; }
+        .request-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { background-color: #417690; color: #eef7fc; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; transition: all 0.3s; }
+        .tab-btn.active { outline: 2px solid #000; }
+        .request-card { background: #ffffff; border: 1px solid #d0d7dd; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); overflow: hidden; }
+        .request-card-body { padding: 24px; color: #000; }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; padding: 15px; background: #eaeaea; border-radius: 6px; color: #000; }
+        
+        .action-row { border: 2px solid #ccc; padding: 15px; border-radius: 6px; margin-top: 20px; transition: all 0.3s; }
+        .action-row label { display: block; font-weight: bold; cursor: pointer; margin-bottom: 8px; }
+        
+        .state-reject { background-color: #f0fff4; border-color: #48bb78; color: #22543d; }
+        .state-ban { background-color: #fff5f5; border-color: #f56565; color: #822727; }
+        
+        .tab-btn.state-reject { background-color: #48bb78 !important; color: white !important; }
+        .tab-btn.state-ban { background-color: #f56565 !important; color: white !important; }
+        
+        .tab-btn.active.state-reject { border: 2px solid #48bb78 !important; background-color: #f0fff4 !important; color: #22543d !important; }
+        .tab-btn.active.state-ban { border: 2px solid #f56565 !important; background-color: #fff5f5 !important; color: #822727 !important; }
+        
+        .tab-btn.active { border: 2px solid #417690 !important; background-color: #eef7fc !important; color: #417690 !important; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form action="" method="post">
+        {% csrf_token %}
+        {% for obj in queryset %}
+            <input type="hidden" name="_selected_action" value="{{ obj.pk }}" />
+        {% endfor %}
+        <input type="hidden" name="action" value="resolve_user_report" />
+        {{ formset.management_form }}
+        
+        <div class="container-wrapper">
+            <div class="request-tabs">
+                {% for form in formset %}
+                    <button type="button" id="tab-btn-{{ forloop.counter }}" class="tab-btn {% if forloop.first %}active{% endif %}" 
+                            onclick="switchRequestTab(event, 'card-{{ forloop.counter }}')">
+                        Report #{{ form.instance.id }}
+                    </button>
+                {% endfor %}
+            </div>
+
+            <div class="request-cards-container">
+                {% for form in formset %}
+                <div class="request-card" id="card-{{ forloop.counter }}" style="display: {% if forloop.first %}block{% else %}none{% endif %};">
+                    <div class="request-card-body">
+                        <div class="info-grid">
+                            <div><strong>Reporter:</strong> {{ form.instance.reporter.username }}</div>
+                            <div><strong>Reported User:</strong> {{ form.instance.target.username }}</div>
+                            <div class="col-span-2"><strong>Reason:</strong> {{ form.instance.title }}</div>
+                            <div class="col-span-2"><strong>Description:</strong> {{ form.instance.description }}</div>
+                        </div>
+
+                        {{ form.request_id }}
+                        <div class="action-row" id="row-{{ forloop.counter }}">
+                            <label><input type="checkbox" name="{{ form.prefix }}-reject" class="action-check" data-id="{{ forloop.counter }}" data-type="reject"> Dismiss Report</label>
+                            <label><input type="checkbox" name="{{ form.prefix }}-ban_user" class="action-check" data-id="{{ forloop.counter }}" data-type="ban"> BAN User & Delete All Their Runs</label>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="submit-row" style="margin-top: 30px; text-align: right;">
+                <input type="submit" name="apply" value="{% trans 'Apply Decisions' %}" class="default" />
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function switchRequestTab(evt, cardId) {
+        document.querySelectorAll(".request-card").forEach(c => c.style.display = "none");
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.getElementById(cardId).style.display = "block";
+        evt.currentTarget.classList.add("active");
+    }
+
+    document.querySelectorAll('.action-check').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const id = this.getAttribute('data-id');
+            const type = this.getAttribute('data-type');
+            const row = document.getElementById(`row-${id}`);
+            const btn = document.getElementById(`tab-btn-${id}`);
+            
+            row.className = 'action-row';
+            btn.classList.remove('state-reject', 'state-ban');
+            
+            row.querySelectorAll('.action-check').forEach(other => { if (other !== this) other.checked = false; });
+            
+            if (this.checked) {
+                row.classList.add(`state-${type}`);
+                btn.classList.add(`state-${type}`);
+            }
+        });
+    });
+</script>
+{% endblock %}
