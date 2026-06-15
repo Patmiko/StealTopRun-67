@@ -49,4 +49,7 @@ urlpatterns = [
 
     # Error Handling
     path('404/', core_views.PageNotFoundView.as_view(), name='page-not-found'),
+    path('500/', core_views.ServerErrorView.as_view(), name='server-error'),
+    path('403/', core_views.PermissionDeniedView.as_view(), name='permission-denied'),
+    path('400/', core_views.BadRequestView.as_view(), name='bad-request'),
 ]

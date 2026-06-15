@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bad Request - StealTopRun</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex flex-col min-h-screen font-sans">
+<div class="max-w-6xl mx-auto mt-8 space-y-10 px-4">
+
+    <div class="text-center border-b border-gray-700 pb-8 mt-20">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-500 tracking-tight">
+            Malformed Request Detected: <br> Error 400
+        </h1>
+        <p class="text-gray-400 font-medium my-6 text-lg">
+            The server couldn't parse the incoming data. <br>Make sure you aren't trying to manipulate game memory through the browser.
+        </p>
+        <a href="{% url 'home' %}" class="inline-block text-xl font-bold tracking-wider text-purple-400 hover:text-purple-300 transition mt-4">
+            Go Back to Main Page
+        </a>
+    </div>
+
+</div>
+</body>
+</html>
