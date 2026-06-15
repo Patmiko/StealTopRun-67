@@ -7,8 +7,8 @@ from datetime import timedelta
 from django.contrib.admin import ModelAdmin
 from django.db.models import QuerySet
 from django.http import HttpRequest
-from .models import Game, GameCategoryAllocation, Status, SpeedrunType, VerificationStatus, Report, UserReport, SpeedrunReport, Speedrun
-from .forms import AcceptGameRequestFormSet, AcceptSpeedrunTypeRequestFormSet, AcceptSpeedrunRequestFormSet, ResolveSpeedrunReportFormSet
+from .models import Game, GameCategoryAllocation, Status, SpeedrunType, VerificationStatus, Report, UserReport, SpeedrunReport, Speedrun, User
+from .forms import AcceptGameRequestFormSet, AcceptSpeedrunTypeRequestFormSet, AcceptSpeedrunRequestFormSet, ResolveSpeedrunReportFormSet, ResolveUserReportFormSet
 
 
 
@@ -280,26 +280,63 @@ def dismiss_reports(
     )
 
 
-@admin.action(description='Resolve and Ban User')
+@admin.action(description='See and Resolve Reports')
 def resolve_user_report(
     modeladmin: ModelAdmin,
     request: HttpRequest,
     queryset: QuerySet[UserReport]
 ):
-    updated_reports = queryset.update(status=Status.ACCEPTED)
-
-    banned_count = 0
-    for report in queryset:
-        if report.target.status != VerificationStatus.BANNED:
-            report.target.status = VerificationStatus.BANNED
-            report.target.save()
-            banned_count += 1
+    if 'apply' in request.POST:
+        formset = ResolveUserReportFormSet(request.POST, prefix='form')
+        
+        if formset.is_valid():
+            with transaction.atomic():
+                for form in formset:
+                    # Get ID from hidden field
+                    report_id = form.cleaned_data.get('request_id')
+                    if not report_id:
+                        continue
+                    
+                    # Logic
+                    reject = form.cleaned_data.get('reject')
+                    ban_user = form.cleaned_data.get('ban_user')
+                    
+                    if not any([reject, ban_user]):
+                        continue
+                    
+                    report = UserReport.objects.get(pk=report_id)
+                    
+                    if reject:
+                        report.status = Status.REJECTED
+                        report.save()
+                    elif ban_user:
+                        if report.target:
+                            user = report.target
+                            user.status = VerificationStatus.BANNED
+                            user.save()
+                            Speedrun.objects.filter(user=user).delete()
+                        report.status = Status.ACCEPTED
+                        report.save()
             
-    modeladmin.message_user(
-        request, 
-        f'Resolved {updated_reports} reports. Banned {banned_count} user(s).', 
-        messages.SUCCESS
-    )
+            messages.success(request, "Reports processed successfully.")
+            return redirect(request.get_full_path())
+        else:
+            # If not valid, show errors in the admin
+            modeladmin.message_user(request, f"Form Errors: {formset.errors}", level='ERROR')
+    else:
+        # GET request logic
+        initial_data = [{'request_id': r.pk} for r in queryset]
+        formset = ResolveUserReportFormSet(initial=initial_data)
+        
+        # Bind the instances for the template
+        for form, instance in zip(formset.forms, queryset):
+            form.instance = instance
+
+    return render(request, 'admin/resolve_user_report.html', {
+        'formset': formset,
+        'queryset': queryset,
+        'title': 'Resolve Users Reports'
+    })
 
 
 @admin.action(description="See and Resolve Reports")
