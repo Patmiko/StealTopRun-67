@@ -1,46 +1,52 @@
 from django.urls import path
-from . import views
+import main.views.auth as auth_views
+import main.views.games as games_views
+import main.views.speedruns as speedrun_views
+import main.views.interactions as interactions_views
+import main.views.core as core_views
+import main.views.verification as verification_views
 
 urlpatterns = [
     # Core
-    path('', views.HomeView.as_view(), name='home'),
-    path('discover/', views.DiscoverView.as_view(), name='discover'),
+    path('', core_views.HomeView.as_view(), name='home'),
 
     # User Auth & Profiles
-    path('user/login', views.LoginView.as_view(), name='user-login'),
-    path('user/register', views.RegisterView.as_view(), name='user-register'),
-    path('user/logout', views.LogoutView.as_view(), name='user-logout'),
-    path('user/<str:username>/', views.UserProfileView.as_view(), name='user-profile'),
-    path('user/<str:username>/edit/', views.EditUserProfileView.as_view(), name='edit-profile'),
-    path('user/delete', views.DeleteUserView.as_view(), name='delete-profile'),
-    path('users/search/', views.SearchUserView.as_view(), name='user-search'),
+    path('user/login', auth_views.LoginView.as_view(), name='user-login'),
+    path('user/register', auth_views.RegisterView.as_view(), name='user-register'),
+    path('user/logout', auth_views.LogoutView.as_view(), name='user-logout'),
+    path('user/<str:username>/', auth_views.UserProfileView.as_view(), name='user-profile'),
+    path('user/<str:username>/edit/', auth_views.EditUserProfileView.as_view(), name='edit-profile'),
+    path('user/delete', auth_views.DeleteUserView.as_view(), name='delete-profile'),
+    path('users/search/', auth_views.SearchUserView.as_view(), name='user-search'),
 
     # Email Verification
-    path('verify-email/<str:uidb64>/<str:token>/', views.EmailVerificationView.as_view(), name='verify-email'),
-    path('resend-verification/', views.ResendVerificationEmailView.as_view(), name='resend-verification'),
-    path('verify-pending/', views.verificationPendingView.as_view(), name='verification-pending'),
-    path('reset-password/<str:token>/', views.ResetPasswordView.as_view(), name='reset-password'),
+    path('verify-email/<str:uidb64>/<str:token>/', verification_views.EmailVerificationView.as_view(), name='verify-email'),
+    path('resend-verification/', verification_views.ResendVerificationEmailView.as_view(), name='resend-verification'),
+    path('verify-pending/', verification_views.verificationPendingView.as_view(), name='verification-pending'),
+    path('reset-password/<str:token>/', verification_views.ResetPasswordView.as_view(), name='reset-password'),
     # Email Change Verification
-    path('change-email/<str:uidb64>/<str:token>/', views.ChangeEmailView.as_view(), name='change-email'),
+    path('change-email/<str:uidb64>/<str:token>/', verification_views.ChangeEmailView.as_view(), name='change-email'),
 
 
     # Games & Leaderboards
-    path('games/', views.GamesView.as_view(), name='game-list'),
-    path('games/<int:game_id>/', views.GameDetailView.as_view(), name='game-detail'),
-    path('games/<int:game_id>/speedrun-types/<int:type_id>/', views.CategoryLeaderboardView.as_view(), name='category-leaderboard'),
+    path('games/', games_views.GamesView.as_view(), name='game-list'),
+    path('games/<int:game_id>/', games_views.GameDetailView.as_view(), name='game-detail'),
+    path('discover/', games_views.DiscoverView.as_view(), name='discover'),
 
     # Speedruns
-    path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/<int:speedrun_id>/', views.SpeedrunDetailView.as_view(), name='speedrun-view'),
-    path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/', views.SpeedrunUploadView.as_view(), name='speedrun-upload'),
-    path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/<int:speedrun_id>/delete/', 
-         views.SpeedrunDeleteView.as_view(), name='speedrun-delete'),
+    path('games/<int:game_id>/speedrun-types/<int:type_id>/', speedrun_views.CategoryLeaderboardView.as_view(), name='category-leaderboard'),
+    path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/<int:speedrun_id>/', speedrun_views.SpeedrunDetailView.as_view(), name='speedrun-view'),
+    path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/', speedrun_views.SpeedrunUploadView.as_view(), name='speedrun-upload'),
+    path('games/<int:game_id>/speedrun-types/<int:type_id>/speedruns/<int:speedrun_id>/delete/',
+         speedrun_views.SpeedrunDeleteView.as_view(), name='speedrun-delete'),
+
     # Requests
-    path('requests/submit/', views.RequestSubmissionView.as_view(), name='request-submit'),
+    path('requests/submit/', interactions_views.RequestSubmissionView.as_view(), name='request-submit'),
 
     # Reports
-    path('user/<str:username>/report/', views.ReportUserView.as_view(), name='report-user'),
-    path('speedruns/<int:speedrun_id>/report/', views.ReportSpeedrunView.as_view(), name='report-speedrun'),
+    path('user/<str:username>/report/', interactions_views.ReportUserView.as_view(), name='report-user'),
+    path('speedruns/<int:speedrun_id>/report/', interactions_views.ReportSpeedrunView.as_view(), name='report-speedrun'),
 
     # Error Handling
-    path('404/', views.PageNotFoundView.as_view(), name='page-not-found'),
+    path('404/', core_views.PageNotFoundView.as_view(), name='page-not-found'),
 ]

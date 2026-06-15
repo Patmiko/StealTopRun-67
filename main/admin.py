@@ -1,10 +1,6 @@
 from django.contrib import admin
-from django.contrib import messages
-from django.http import HttpRequest
-from django.db.models import QuerySet
-from django.contrib.admin import ModelAdmin
-from .actions import accept_and_configure_game, accept_and_configure_speedrun_type, reject_request, accept_and_configure_speedrun, delete_unverified_users
-from .models import User, Status, VerificationStatus, Game, Report, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport, GameRequest, SpeedrunTypeRequest
+from .actions import accept_and_configure_game, accept_and_configure_speedrun_type, reject_request, accept_and_configure_speedrun, delete_unverified_users, dismiss_reports, resolve_speedrun_report, resolve_user_report
+from .models import User, Game, Category, Speedrun, SpeedrunType, GameCategoryAllocation, SpeedrunReport, UserReport, GameRequest, SpeedrunTypeRequest
 
 
 
@@ -49,65 +45,6 @@ class SpeedrunAdmin(admin.ModelAdmin):
     list_filter = ('status', 'date')
     
     actions = [accept_and_configure_speedrun]
-
-
-@admin.action(description="Dismiss reports")
-def dismiss_reports(
-    modeladmin: ModelAdmin,
-    request: HttpRequest,
-    queryset: QuerySet[Report]
-):
-    updated = queryset.update(status=Status.REJECTED)
-    modeladmin.message_user(
-        request, 
-        f'Successfully dismissed {updated} reports.', 
-        messages.SUCCESS
-    )
-
-
-@admin.action(description='Resolve and Ban User')
-def resolve_user_report(
-    modeladmin: ModelAdmin,
-    request: HttpRequest,
-    queryset: QuerySet[UserReport]
-):
-    updated_reports = queryset.update(status=Status.ACCEPTED)
-
-    banned_count = 0
-    for report in queryset:
-        if report.target.status != VerificationStatus.BANNED:
-            report.target.status = VerificationStatus.BANNED
-            report.target.save()
-            banned_count += 1
-            
-    modeladmin.message_user(
-        request, 
-        f'Resolved {updated_reports} reports. Banned {banned_count} user(s).', 
-        messages.SUCCESS
-    )
-
-
-@admin.action(description='Resolve and Ban User')
-def resolve_speedrun_report(
-    modeladmin: ModelAdmin,
-    request: HttpRequest,
-    queryset: QuerySet[SpeedrunReport]
-):
-    updated_reports = queryset.update(status=Status.ACCEPTED)
-
-    banned_count = 0
-    for report in queryset:
-        speedrun_owner = report.target.user
-        if speedrun_owner.status != VerificationStatus.BANNED:
-            speedrun_owner.status = VerificationStatus.BANNED
-            speedrun_owner.save()
-            banned_count += 1
-
-    modeladmin.message_user(
-        request, 
-        f'Resolved {updated_reports} reports. Banned {banned_count} user(s).', 
-        messages.SUCCESS
-    )
 
 
 @admin.register(SpeedrunReport)
