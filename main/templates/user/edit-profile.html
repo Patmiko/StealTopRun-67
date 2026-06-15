@@ -14,22 +14,6 @@
         </div>
     </div>
 
-    {% if messages %}
-        <div class="space-y-4">
-            {% for message in messages %}
-                <div class="p-4 rounded-xl border text-sm font-medium shadow-md transition
-                    {% if message.tags == 'success' %}
-                        bg-green-900/40 border-green-500/50 text-green-300
-                    {% elif message.tags == 'error' %}
-                        bg-red-900/40 border-red-500/50 text-red-300
-                    {% else %}
-                        bg-blue-900/40 border-blue-500/50 text-blue-300
-                    {% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
         

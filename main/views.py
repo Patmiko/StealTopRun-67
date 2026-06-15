@@ -78,11 +78,14 @@ class RegisterView(View):
             user.set_password(form.cleaned_data['password'])
             user.status = VerificationStatus.UNVERIFIED
             user.save()
+            try:
+                send_verification_email(request, user)
+                messages.success(request, 'Verification email sent! Please check your inbox to verify your account.')
+                return redirect('verification-pending')
+            except Exception:
+                messages.error(request, f'Error sending verification email. Please resend the verification email.')
+                return render(request, 'email_resend.html')
 
-            send_verification_email(request, user)
-
-            messages.success(request, 'Verification email sent! Please check your inbox to verify your account.')
-            return redirect('verification-pending')
 
         return render(request, 'user/register.html', {'form': form})
 
@@ -163,18 +166,22 @@ class EditUserProfileView(View):
                     user_instance.username = new_username
                     
                     if new_email != original_email:
-                        messages.info(request, 'A verification link has been sent to your new email. Please verify to complete the change.')
 
                         user_instance.email = original_email
                         profile_user.email = original_email
-                        send_change_email(request, profile_user, new_email)
-                        send_security_alert_email(request, profile_user, original_email, new_email)
-                        request.session['pending_email'] = new_email
+                        try:
+                            send_change_email(request, profile_user, new_email)
+                            send_security_alert_email(request, profile_user, original_email, new_email)
+                            request.session['pending_email'] = new_email
+                            messages.info(request, 'A verification link has been sent to your new email. Please verify to complete the change.')
+                        except Exception:
+                            messages.error(request, 'Error sending verification email. Please try again later.')
+                            return redirect('edit-profile', username=profile_user.username)
                     else:
                         user_instance.email = original_email
 
                     user_instance.save()
-                    profile_form.save_m2m() 
+                    profile_form.save_m2m()
                     
                     messages.success(request, 'Profile updated successfully!')
                     return redirect('user-profile', username=user_instance.username)
@@ -184,14 +191,18 @@ class EditUserProfileView(View):
         elif action == 'change_password':
             password_form = PasswordChangeForm(user=profile_user, data=request.POST)
             if password_form.is_valid():
-                # 1. Extract the validated new password
+                # Extract the validated new password
                 new_password = password_form.cleaned_data.get('new_password1')
                 
-                # 2. Sign the password so it can be passed in the URL
+                # Sign the password so it can be passed in the URL
                 signed_password = signing.dumps(new_password)
                 
-                # 3. Pass the signed password as a target to your email utility
-                send_password_reset_email(request, profile_user, target=signed_password)
+                # Pass the signed password as a target to your email utility
+                try:
+                    send_password_reset_email(request, profile_user, target=signed_password)
+                except Exception:
+                    messages.error(request, 'Error sending password confirmation email. Please try again later.')
+                    return redirect('edit-profile', username=profile_user.username)
 
                 messages.info(request, 'A password confirmation link has been sent to your email. Please check your inbox to finalize the change and login with your new password.')
                 logout(request)
@@ -265,12 +276,13 @@ class ResendVerificationEmailView(View):
         if cache.get(cache_key):
             return HttpResponse("Please wait 15 minutes before requesting another email.", status=429)
             
-        # Send the email
-        send_verification_email(request, user)
-        
-        # Set the cooldown timer
-        cache.set(cache_key, True, timeout=900)
-        
+        try:
+            send_verification_email(request, user)
+            cache.set(cache_key, True, timeout=900)
+        except Exception as e:
+            print(f"Email failed to send: {e}")
+            return HttpResponse("Error sending email. Please try again later.", status=500)
+
         return HttpResponse("If that email is registered and unverified, a new link has been sent.")
     
 class verificationPendingView(View):
@@ -298,10 +310,13 @@ class verificationPendingView(View):
                 return render(request, 'email_resend.html', {'form': form})
 
             # Send email and trigger cooldown
-            send_verification_email(request, user)
-            cache.set(cache_key, True, timeout=900)
-            
-            messages.success(request, "A new verification link has been sent to your email.")
+            try:
+                send_verification_email(request, user)
+                cache.set(cache_key, True, timeout=900)
+                messages.success(request, "A new verification link has been sent to your email.")
+            except Exception as e:
+                messages.error(request, "We couldn't send the email right now. Please try again later.")
+                
             return redirect('verification-pending')
         return render(request, 'email_resend.html', {'form': form})
     def get(self, request, *args, **kwargs):
