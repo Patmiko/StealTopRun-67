@@ -3,17 +3,25 @@
 {% block title %}Browse Games - StealTopRun{% endblock %}
 
 {% block content %}
-<div class="{% if not search_term %}pl-40 -mt-8 {% endif %} max-w-7xl mx-auto space-y-8">
+<div class="max-w-7xl mx-auto space-y-8 min-h-screen pb-12 px-4 md:px-8">
 
     {% if not search_term %}
-    <aside class="fixed left-0 top-16 w-56 h-[calc(100vh-64px)] border-r border-gray-700 bg-gray-900 z-40 overflow-y-auto">
-        <div class="pt-6 pl-8 pr-8"> 
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm transition-opacity duration-300 opacity-0"></div>
+
+    <aside id="category-sidebar" class="fixed bottom-0 right-0 w-80 h-[calc(100vh)] border-l border-gray-700 bg-gray-900 z-50 overflow-y-auto transform translate-x-full transition-transform duration-300 ease-in-out shadow-2xl">
+        <div class="pt-6 pl-8 pr-8 relative"> 
+            <button id="sidebar-close" class="absolute top-5 right-4 text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition" aria-label="Zamknij menu">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
             <h3 class="text-white font-bold mb-6 text-xl">Categories</h3>
             <hr class="border-gray-700 mb-6">
-            <ul class="space-y-4">
+            <ul class="space-y-3">
                 {% for category_name, games_list in grouped_games.items %}
                     <li>
-                        <a href="#cat-{{ forloop.counter }}" class="block text-gray-400 hover:text-purple-400 transition text-base font-medium">
+                        <a href="#cat-{{ forloop.counter }}" class="sidebar-link block text-gray-400 hover:text-purple-400 hover:translate-x-1 transform transition text-base font-medium">
                             {{ category_name }}
                         </a>
                     </li>
@@ -21,9 +29,18 @@
             </ul>
         </div>
     </aside>
+
+    <div class="fixed bottom-6 right-6 z-40">
+        <button id="sidebar-toggle" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-3 rounded-full shadow-2xl flex items-center justify-center transition-all transform active:scale-95 hover:scale-105 font-bold" aria-label="Otwórz kategorie">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <span class="ml-2 text-sm pr-1">Categories</span>
+        </button>
+    </div>
     {% endif %}
     
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-700 pb-6">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-700 pb-6 pt-4">
         <div>
             <h1 class="text-4xl font-extrabold text-white">Browse Games</h1>
             <p class="text-gray-400 mt-1">Find your favorite game and start running.</p>
@@ -100,7 +117,7 @@
     {% else %}
         <div class="space-y-12">
             {% for category_name, games_list in grouped_games.items %}
-                <div id="cat-{{ forloop.counter }}" class="space-y-4 scroll-mt-20">
+                <div id="cat-{{ forloop.counter }}" class="space-y-4 scroll-mt-24">
                     <h2 class="text-2xl font-bold text-gray-400 border-b border-gray-800 pb-2">
                         {{ category_name }}
                     </h2>
@@ -145,4 +162,38 @@
     {% endif %}
 
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebar = document.getElementById('category-sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        const closeBtn = document.getElementById('sidebar-close');
+        const backdrop = document.getElementById('sidebar-backdrop');
+
+        if (sidebar && toggleBtn) {
+            function openSidebar() {
+                sidebar.classList.remove('translate-x-full');
+                backdrop.classList.remove('hidden');
+                setTimeout(() => { backdrop.classList.remove('opacity-0'); }, 10);
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.add('translate-x-full');
+                backdrop.classList.add('opacity-0');
+                document.body.style.overflow = ''; 
+                setTimeout(() => { backdrop.classList.add('hidden'); }, 300);
+            }
+
+            toggleBtn.addEventListener('click', openSidebar);
+            if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+            if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', closeSidebar);
+            });
+        }
+    });
+</script>
 {% endblock %}
