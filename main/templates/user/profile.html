@@ -5,8 +5,13 @@
 {% block content %}
 <div class="max-w-5xl mx-auto space-y-8">
     <div>
-        <h1 class="text-4xl font-extrabold text-white">My Profile</h1>
-        <p class="text-gray-400 mt-1">Check your current speedruns or modify your account informations.</p>
+        {% if user == profile_user %}
+            <h1 class="text-4xl font-extrabold text-white">My Profile</h1>
+            <p class="text-gray-400 mt-1">Check your current speedruns or modify your account informations.</p>
+        {% else %}
+            <h1 class="text-4xl font-extrabold text-white">{{ profile_user.username }}'s Profile</h1>
+            <p class="text-gray-400 mt-1">Check {{ profile_user.username }}'s current speedruns.</p>
+        {% endif %}
     </div>
     {% if user == profile_user %}
         {% if request.session.pending_email %}
