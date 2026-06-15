@@ -82,7 +82,9 @@ class LogoutView(LoginRequiredMixin, View):
         return redirect('user-login')
 
 
-class UserProfileView(View):
+class UserProfileView(LoginRequiredMixin, View):
+    login_url = 'user-login'
+
     def get(self, request, username, *args, **kwargs):
         profile_user = get_object_or_404(User, username=username)
 
