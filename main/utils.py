@@ -118,7 +118,7 @@ def send_password_reset_email(request, user, target):
         'reset_url': reset_url,
     }
     
-    html_message = render_to_string('emails/password_reset_email.html', context)
+    html_message = render_to_string('emails/password_change_email.html', context)
     plain_message = strip_tags(html_message)
 
     send_mail(
