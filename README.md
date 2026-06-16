@@ -75,7 +75,8 @@ For more technical information please head to DOCS.md file
 <img src="assets/User/discover.png" />
 
 #### Browse Games Screen
-<img src="assets/User/browse games.png" />
+<img src="assets/User/browse games_closed_cat.png" />
+<img src="assets/User/browse games_open_cat.png" />
 
 #### Game Detail Screen
 <img src="assets/User/game detail.png" />
