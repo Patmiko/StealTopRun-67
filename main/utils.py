@@ -100,6 +100,7 @@ def send_security_alert_email(request, user, new_email):
         fail_silently=False,
     )
 
+
 def send_password_reset_email(request, user, target):
     domain = request.get_host()
     

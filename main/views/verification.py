@@ -4,13 +4,13 @@ from django.contrib.auth import update_session_auth_hash, get_user_model
 from django.contrib import messages
 from django.views import View
 from ..models import User, VerificationStatus
-from ..forms import ResendVerificationForm
+from ..forms import ResendVerificationForm, PasswordResetRequestForm
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
 from django.core import signing
-from ..utils import send_verification_email
+from ..utils import send_verification_email, send_password_reset_email
 
 
 class EmailVerificationView(View):
@@ -165,3 +165,29 @@ class ResetPasswordView(View):
         else:
             messages.error(request, "This confirmation link is invalid or has expired.")
             return redirect('home')
+
+
+class RequestPasswordResetView(View):
+    def get(self, request, *args, **kwargs):
+        form = PasswordResetRequestForm()
+        return render(request, 'user/password_reset_request.html', {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            new_password = form.cleaned_data['new_password']
+            
+            User = get_user_model()
+            try:
+                user = User.objects.get(email=email)
+                target = signing.dumps(new_password)
+                
+                send_password_reset_email(request, user, target)
+            except User.DoesNotExist:
+                pass
+
+            messages.success(request, "A confirmation link has been sent to your email if it exists in our system.")
+            return redirect('user-login')
+        
+        return render(request, 'user/password_reset_request.html', {'form': form})

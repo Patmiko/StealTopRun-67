@@ -25,9 +25,11 @@ urlpatterns = [
     path('verify-email/<str:uidb64>/<str:token>/', verification_views.EmailVerificationView.as_view(), name='verify-email'),
     path('resend-verification/', verification_views.ResendVerificationEmailView.as_view(), name='resend-verification'),
     path('verify-pending/', verification_views.verificationPendingView.as_view(), name='verification-pending'),
-    path('reset-password/<str:token>/', verification_views.ResetPasswordView.as_view(), name='reset-password'),
     # Email Change Verification
     path('change-email/<str:uidb64>/<str:token>/', verification_views.ChangeEmailView.as_view(), name='change-email'),
+    # Password Reset Request
+    path('forgot-password/', verification_views.RequestPasswordResetView.as_view(), name='request-password-reset'),
+    path('reset-password/<str:token>/', verification_views.ResetPasswordView.as_view(), name='reset-password'),
 
 
     # Games & Leaderboards
