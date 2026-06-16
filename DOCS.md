@@ -46,6 +46,8 @@ Manages security-related flows, password resets, and email modifications.
     * Renders an intermediary notice page informing the user that they need to verify their email before continuing.
 
 ### **Credentials & Security Changes**
+* **POST/GET** `/forgot-password/` (`request-password-reset`) → `RequestPasswordResetView`
+    * Leads to a form that allows user to send a password reset email.
 * **POST/GET** `/reset-password/<str:token>/` (`reset-password`) → `ResetPasswordView`
     * Allows users to set a new password via a secure token received in their email.
 * **GET** `/change-email/<str:uidb64>/<str:token>/` (`change-email`) → `ChangeEmailView`
